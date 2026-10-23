@@ -4,6 +4,12 @@
 {
 	# Issue certificates from Caddy's private CA instead of a public one.
 	local_certs
+	# Don't try to trust the CA inside the container itself (pointless, noisy logs).
+	skip_install_trust
+	# The http:// block below does the redirecting. Caddy's automatic redirects would
+	# otherwise take over the configured hostnames and redirect the CA download to HTTPS
+	# before the device trusts the certificate - a chicken-and-egg problem.
+	auto_https disable_redirects
 }
 
 {$DASHBOARD_HOSTS:raspberrypi.local} {

@@ -158,6 +158,8 @@ The CA lives in the `caddy-data` volume. Keep it, or every device has to trust a
 If you'd rather not install a certificate anywhere, and you own a domain, Caddy can get a
 publicly trusted certificate through a DNS challenge instead. Ask and I'll set it up.
 
+Every address you open in the browser must be listed in `DASHBOARD_HOSTS`. Caddy only
+has certificates for those, so an unlisted IP fails the secure connection outright.
 `.local` names rely on mDNS, which some Android versions don't resolve. Use the IP address
 there, and include it in `DASHBOARD_HOSTS`.
 
