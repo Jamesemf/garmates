@@ -13,6 +13,7 @@ const NAV = [
   { to: '/workouts', label: 'Workouts' },
   { to: '/body', label: 'Body & health' },
   { to: '/compare', label: 'Compare' },
+  { to: '/goals', label: 'Goals & challenges' },
   { to: '/day', label: 'Day view' },
   { to: '/people', label: 'People & keys' },
 ]

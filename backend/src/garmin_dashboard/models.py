@@ -125,6 +125,42 @@ class SyncRun(Base):
     message: Mapped[str | None] = mapped_column(Text)
 
 
+# --- Goals & challenges -------------------------------------------------------------------
+
+
+class Goal(Base):
+    """A personal target on one metric, e.g. steps >= 10,000 per day or workouts >= 3 per week.
+
+    ``target`` is in the metric's catalog units (km, kg, ml, hours…), never the viewer's.
+    """
+
+    __tablename__ = "goals"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    person_id: Mapped[int] = mapped_column(ForeignKey("people.id", ondelete="CASCADE"), index=True)
+    metric_key: Mapped[str] = mapped_column(String(40))
+    comparison: Mapped[str] = mapped_column(String(8), default="at_least")  # at_least|at_most
+    target: Mapped[float] = mapped_column(Float)
+    period: Mapped[str] = mapped_column(String(8), default="week")  # day|week|month
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class Challenge(Base):
+    """A head-to-head over a date range, scored by total, average or improvement."""
+
+    __tablename__ = "challenges"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(120))
+    metric_key: Mapped[str] = mapped_column(String(40))
+    scoring: Mapped[str] = mapped_column(String(12), default="total")  # total|average|improvement
+    start_date: Mapped[dt.date] = mapped_column(Date)
+    end_date: Mapped[dt.date] = mapped_column(Date)
+    participant_ids: Mapped[list[int]] = mapped_column(JSON)
+    created_by: Mapped[int | None] = mapped_column(ForeignKey("people.id", ondelete="SET NULL"))
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime, default=utcnow)
+
+
 # --- Normalised metrics -------------------------------------------------------------------
 
 

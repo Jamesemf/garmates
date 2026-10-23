@@ -185,3 +185,52 @@ export interface SyncStateResponse {
   }[]
   runs: SyncInfo[]
 }
+
+export type GoalStatus = 'met' | 'in_progress' | 'on_track' | 'behind' | 'missed' | 'no_data'
+export type Period = 'day' | 'week' | 'month'
+
+export interface Goal {
+  id: number
+  person_id: number
+  metric_key: string
+  comparison: 'at_least' | 'at_most'
+  target: number
+  period: Period
+  current: {
+    start: string
+    end: string
+    value: number | null
+    elapsed_days: number
+    total_days: number
+    expected: number | null
+    status: GoalStatus
+  }
+  history: { start: string; value: number | null; met: boolean | null }[]
+  streak: number
+  hit_rate: number | null
+}
+
+export type Scoring = 'total' | 'average' | 'improvement'
+
+export interface ChallengeEntry {
+  person_id: number
+  hidden: boolean
+  score: number | null
+  days: number
+  rank?: number
+  baseline?: number | null
+}
+
+export interface Challenge {
+  id: number
+  name: string
+  metric_key: string
+  scoring: Scoring
+  start: string
+  end: string
+  status: 'upcoming' | 'active' | 'finished'
+  days_left: number
+  created_by: number | null
+  entries: ChallengeEntry[]
+  race: ({ date: string } & Record<string, number | string>)[]
+}

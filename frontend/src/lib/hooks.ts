@@ -8,6 +8,8 @@ import type {
   Activity,
   Bucket,
   Catalog,
+  Challenge,
+  Goal,
   DayResponse,
   MetricDef,
   Person,
@@ -264,5 +266,36 @@ export function useSyncState(personId: number, enabled: boolean) {
     queryFn: () => api.get<SyncStateResponse>(`/api/people/${personId}/sync-state`),
     enabled,
     refetchInterval: (query) => (query.state.data?.syncing ? 4000 : false),
+  })
+}
+
+// --- goals & challenges ----------------------------------------------------------------------
+
+export function useGoals(people: Person[]) {
+  const weekStart = useWeekStart()
+  return useQuery({
+    queryKey: ['goals', ids(people), weekStart],
+    queryFn: () => api.get<{ goals: Goal[] }>('/api/goals', { people: ids(people), week_start: weekStart }),
+    enabled: people.length > 0,
+    placeholderData: keepPreviousData,
+  })
+}
+
+export function useChallenges() {
+  return useQuery({
+    queryKey: ['challenges'],
+    queryFn: () => api.get<{ challenges: Challenge[] }>('/api/challenges'),
+  })
+}
+
+/** Mutation that refreshes goals and challenges afterwards. */
+export function useGoalMutation<TBody = unknown, TResult = unknown>(fn: (body: TBody) => Promise<TResult>) {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: fn,
+    onSuccess: () => {
+      client.invalidateQueries({ queryKey: ['goals'] })
+      client.invalidateQueries({ queryKey: ['challenges'] })
+    },
   })
 }

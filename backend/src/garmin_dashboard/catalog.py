@@ -58,6 +58,12 @@ METRICS: tuple[Metric, ...] = (
     Metric("stress_avg", "Average stress", "", "sleep", "daily", "stress_avg", direction="down"),
     Metric("stress_high_minutes", "High-stress time", "min", "sleep", "daily", "stress_high_min",
            direction="down"),
+    # Clock times in hours: bedtime counts from the evening's midnight (00:30 bedtime = 24.5)
+    # so averages across midnight work; wake time counts from the morning's (06:30 = 6.5).
+    Metric("bedtime", "Bedtime", "clock", "sleep", "sleep_timing", "start_local",
+           direction="none", decimals=2, description="When the main sleep started."),
+    Metric("wake_time", "Wake time", "clock", "sleep", "sleep_timing", "end_local",
+           direction="none", decimals=2, description="When the main sleep ended."),
     # Daily activity
     Metric("steps", "Steps", "", "activity", "daily", "steps", agg="sum"),
     Metric("step_goal", "Step goal", "", "activity", "daily", "step_goal", direction="none"),

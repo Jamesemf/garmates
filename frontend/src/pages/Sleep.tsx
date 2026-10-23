@@ -20,6 +20,8 @@ const METRICS = [
   'bb_max',
   'bb_charged',
   'stress_avg',
+  'bedtime',
+  'wake_time',
 ]
 
 export function SleepPage() {
@@ -40,6 +42,8 @@ export function SleepPage() {
         <MetricChart metric={byKey.rhr} {...common} subtitle="Lower than your own usual is generally better" />
         <MetricChart metric={byKey.bb_max} {...common} subtitle="Peak Body Battery each day" />
         <MetricChart metric={byKey.stress_avg} {...common} />
+        <MetricChart metric={byKey.bedtime} {...common} subtitle="When sleep started - a steadier line means a more regular routine" />
+        <MetricChart metric={byKey.wake_time} {...common} />
       </div>
       <h2 className="mt-8 mb-3 text-sm font-semibold text-ink">Sleep stages</h2>
       <div className="grid gap-4 lg:grid-cols-2">

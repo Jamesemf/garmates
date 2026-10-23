@@ -36,6 +36,16 @@ def _scaled(metric: Metric, value: float | None) -> float | None:
     return round(value * metric.scale, max(metric.decimals, 2))
 
 
+def clock_hours(moment: dt.datetime, anchor: dt.date) -> float:
+    """Hours after midnight at the start of ``anchor``.
+
+    Bedtimes are anchored to the evening before the wake-up day, so 22:45 is 22.75 and 00:30
+    is 24.5 and a week of bedtimes either side of midnight averages sensibly. Wake times are
+    anchored to the wake-up day itself (06:30 is 6.5).
+    """
+    return (moment - dt.datetime.combine(anchor, dt.time())).total_seconds() / 3600
+
+
 def synced_through(db: Session, person_id: int) -> dt.date | None:
     return db.scalar(
         select(func.max(SyncState.synced_through)).where(SyncState.person_id == person_id)
@@ -65,6 +75,22 @@ def load_daily(
         for row in rows:
             for metric in wanted:
                 series[row.date][metric.key] = _scaled(metric, getattr(row, metric.column))
+
+    if by_source.get("sleep_timing"):
+        rows = db.execute(
+            select(Sleep.date, Sleep.start_local, Sleep.end_local).where(
+                Sleep.person_id == person_id, Sleep.date >= start, Sleep.date <= end
+            )
+        )
+        for day, bed, wake in rows:
+            for metric in by_source["sleep_timing"]:
+                if metric.column == "start_local" and bed is not None:
+                    hours = clock_hours(bed, day - dt.timedelta(days=1))
+                elif metric.column == "end_local" and wake is not None:
+                    hours = clock_hours(wake, day)
+                else:
+                    continue
+                series[day][metric.key] = round(hours, 2)
 
     if by_source.get("derived"):
         rows = db.execute(

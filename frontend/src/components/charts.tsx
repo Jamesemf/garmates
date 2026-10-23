@@ -258,6 +258,7 @@ export function PeopleLineChart({
   yDomain,
   xFormat,
   xTicks,
+  yFormat,
   colorFor,
 }: {
   rows: Row[]
@@ -272,6 +273,8 @@ export function PeopleLineChart({
   xFormat?: (v: string) => string
   /** Explicit x tick values (must exist in the data), e.g. round hours. */
   xTicks?: string[]
+  /** Y tick labels (default: compact numbers). */
+  yFormat?: (v: number) => string
   /** Override series colours (default: each person's palette slot). */
   colorFor?: (p: Person) => string
 }) {
@@ -308,7 +311,7 @@ export function PeopleLineChart({
           width={44}
           tickLine={false}
           axisLine={false}
-          tickFormatter={(v: number) => formatCompact(v)}
+          tickFormatter={yFormat ?? ((v: number) => formatCompact(v))}
           domain={yDomain ?? ['auto', 'auto']}
           allowDecimals={false}
         />

@@ -81,6 +81,7 @@ export function MetricChart({
           height={height}
           connectNulls={connectNulls}
           referenceY={referenceY}
+          yFormat={shown.isClock ? (v) => shown.format(v) : undefined}
           yDomain={HUNDRED_SCALE.has(metric.key) ? ['auto', (max: number) => Math.min(100, Math.ceil(max / 5) * 5)] : undefined}
         />
       )}

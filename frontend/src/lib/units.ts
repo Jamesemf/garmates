@@ -50,8 +50,24 @@ function unitLabel(quantity: Quantity | null | undefined, prefs: Preferences, fa
 export interface DisplayMetric {
   def: MetricDef
   toDisplay: (v: number) => number
-  /** Text with unit, e.g. "11 st 6 lb", "72.4 kg", "5.3 mi". */
+  /** Inverse of toDisplay: viewer units back to the metric's stored units (for targets). */
+  fromDisplay: (v: number) => number
+  /** Text with unit, e.g. "11 st 6 lb", "72.4 kg", "5.3 mi", "10:45 pm". */
   format: (v: number | null | undefined) => string
+  isClock: boolean
+}
+
+/** Hours after midnight (may exceed 24 for after-midnight bedtimes) → "23:30" / "11:30 pm". */
+export function clockText(hours: number, prefs: Preferences): string {
+  const total = Math.round(hours * 60)
+  const minutes = ((total % 1440) + 1440) % 1440
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  if (prefs.time_format === '12h') {
+    const suffix = h < 12 ? 'am' : 'pm'
+    return `${h % 12 === 0 ? 12 : h % 12}:${String(m).padStart(2, '0')} ${suffix}`
+  }
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
 }
 
 function stoneText(stones: number): string {
@@ -66,18 +82,21 @@ function stoneText(stones: number): string {
 
 export function displayMetric(metric: MetricDef, prefs: Preferences): DisplayMetric {
   const quantity = metric.quantity as Quantity | null
-  const unit = unitLabel(quantity, prefs, metric.unit)
+  const isClock = metric.unit === 'clock'
+  const unit = isClock ? '' : unitLabel(quantity, prefs, metric.unit)
   const decimals = quantity === 'volume_ml' && prefs.volume === 'floz' ? 0 : metric.decimals
   const def: MetricDef = { ...metric, unit, decimals }
   const toDisplay = (v: number) => convert(quantity, v, prefs)
+  const fromDisplay = (v: number) => v / (convert(quantity, 1, prefs) || 1)
   const format = (v: number | null | undefined) => {
     if (v === null || v === undefined) return '–'
+    if (isClock) return clockText(v, prefs)
     if (quantity === 'mass_kg' && prefs.weight === 'st') return stoneText(v)
     const text = formatNumber(v, decimals)
     if (!unit) return text
     return unit === '%' ? `${text}%` : `${text} ${unit}`
   }
-  return { def, toDisplay, format }
+  return { def, toDisplay, fromDisplay, format, isClock }
 }
 
 /** The signed-in viewer's effective preferences. */
