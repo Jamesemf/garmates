@@ -1,6 +1,15 @@
 export type Category = 'sleep' | 'activity' | 'workouts' | 'body'
 export type Bucket = 'day' | 'week' | 'month'
 
+export interface Preferences {
+  distance: 'km' | 'mi'
+  weight: 'kg' | 'lb' | 'st'
+  volume: 'ml' | 'floz'
+  elevation: 'm' | 'ft'
+  week_start: 'monday' | 'sunday'
+  time_format: '24h' | '12h'
+}
+
 export interface KeyInfo {
   hint: string | null
   status: 'ok' | 'invalid' | 'unverified'
@@ -31,6 +40,9 @@ export interface Person {
   shared_categories: Category[]
   visible_categories: Category[]
   history_start: string | null
+  /** Effective display preferences (only for people you manage, including yourself). */
+  preferences: Preferences | null
+  preference_overrides: Partial<Preferences> | null
   key: KeyInfo | null
   syncing: boolean
   last_sync: SyncInfo | null
@@ -45,6 +57,7 @@ export interface MetricDef {
   agg: 'mean' | 'sum'
   decimals: number
   description: string
+  quantity: 'distance_km' | 'mass_kg' | 'volume_ml' | null
 }
 
 export interface Catalog {

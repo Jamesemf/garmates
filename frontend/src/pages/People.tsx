@@ -4,7 +4,7 @@ import { api } from '../lib/api'
 import { addDays, formatLongDay, formatRelative, toIsoDay } from '../lib/format'
 import { useCatalog, usePeople, usePeopleMutation, useRefreshAll, useSyncState } from '../lib/hooks'
 import { usePalette } from '../lib/theme'
-import type { Category, Person } from '../lib/types'
+import type { Category, Person, Preferences } from '../lib/types'
 
 const KEY_PAGE = 'https://connect.garmin.com/app/settings/personalApiToken'
 
@@ -219,6 +219,7 @@ function PersonCard({ person, me }: { person: Person; me: Person }) {
         </div>
       )}
 
+      {person.is_me && <PreferencesForm person={person} />}
       {person.is_me && person.has_login && <ChangePassword />}
       {me.is_admin && !person.is_me && <AdminActions person={person} onDelete={() => remove.mutate(undefined)} />}
       <ErrorNote error={update.error ?? sync.error ?? remove.error} />
@@ -299,6 +300,65 @@ function KeyForm({ person }: { person: Person }) {
         )}
       </div>
     </form>
+  )
+}
+
+const PREFERENCE_FIELDS: { key: keyof Preferences; label: string; options: { value: string; label: string }[] }[] = [
+  { key: 'distance', label: 'Distance', options: [{ value: 'km', label: 'Kilometres' }, { value: 'mi', label: 'Miles' }] },
+  {
+    key: 'weight',
+    label: 'Weight',
+    options: [
+      { value: 'kg', label: 'Kilograms' },
+      { value: 'lb', label: 'Pounds' },
+      { value: 'st', label: 'Stones & pounds' },
+    ],
+  },
+  { key: 'volume', label: 'Hydration', options: [{ value: 'ml', label: 'Millilitres' }, { value: 'floz', label: 'Fluid ounces' }] },
+  { key: 'elevation', label: 'Elevation', options: [{ value: 'm', label: 'Metres' }, { value: 'ft', label: 'Feet' }] },
+  { key: 'week_start', label: 'Week starts on', options: [{ value: 'monday', label: 'Monday' }, { value: 'sunday', label: 'Sunday' }] },
+  { key: 'time_format', label: 'Clock', options: [{ value: '24h', label: '24-hour' }, { value: '12h', label: '12-hour' }] },
+]
+
+/** Your display preferences: they change how *you* see everyone's data. */
+function PreferencesForm({ person }: { person: Person }) {
+  const save = usePeopleMutation((change: Partial<Record<keyof Preferences, string | null>>) =>
+    api.patch(`/api/people/${person.id}`, { preferences: change }),
+  )
+  const effective = person.preferences
+  const overrides = person.preference_overrides ?? {}
+  if (!effective) return null
+  return (
+    <div className="mt-4 border-t border-line pt-4">
+      <h3 className="mb-1 text-sm font-semibold text-ink">Display preferences</h3>
+      <p className="mb-3 text-xs text-ink-2">
+        How you see everyone's data. Anything set to "Garmin setting" follows your Garmin Connect profile after the next sync.
+      </p>
+      <div className="grid gap-3 sm:grid-cols-3">
+        {PREFERENCE_FIELDS.map((field) => {
+          const own = overrides[field.key]
+          const current = field.options.find((o) => o.value === effective[field.key])?.label
+          return (
+            <Field key={field.key} label={field.label}>
+              <select
+                className={inputClass}
+                value={own ?? ''}
+                disabled={save.isPending}
+                onChange={(e) => save.mutate({ [field.key]: e.target.value || null })}
+              >
+                <option value="">Garmin setting{!own && current ? ` (${current})` : ''}</option>
+                {field.options.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          )
+        })}
+      </div>
+      <ErrorNote error={save.error} />
+    </div>
   )
 }
 

@@ -27,6 +27,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.orm import Session
 
+from .. import prefs
 from ..config import get_settings
 from ..db import session_scope
 from ..models import (
@@ -273,6 +274,9 @@ def sync_snapshots(conn: GarminConnector, person_id: int, today: dt.date) -> Non
             cred = db.get(GarminCredential, person_id)
             if cred is not None and isinstance(profile, dict):
                 cred.garmin_display_name = profile.get("displayName")
+            person = db.get(Person, person_id)
+            if person is not None:
+                person.garmin_preferences = prefs.from_garmin_profile(profile) or None
         if zones is not None:
             store_raw(db, person_id, "hr_zones", "current", zones)
         if fitness is not None:

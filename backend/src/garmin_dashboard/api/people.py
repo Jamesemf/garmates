@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
+from .. import prefs
 from ..config import get_settings
 from ..garmin.connector import GarminConnector, GarminError, KeyRejectedError
 from ..garmin.sync import reset_sync_state, sync_manager
@@ -73,6 +74,10 @@ def person_out(db: Session, person: Person, viewer: Person) -> dict:
         "shared_categories": person.shared_categories or [],
         "visible_categories": visible_categories(viewer, person),
         "history_start": person.history_start.isoformat() if person.history_start else None,
+        "preferences": prefs.effective(person.preferences, person.garmin_preferences)
+        if managed
+        else None,
+        "preference_overrides": (person.preferences or {}) if managed else None,
         "key": key,
         "syncing": sync_manager.is_running(person.id),
         "last_sync": None
@@ -97,12 +102,21 @@ class PersonUpdate(BaseModel):
     color_slot: int | None = Field(default=None, ge=0, lt=PALETTE_SIZE)
     shared_categories: list[str] | None = None
     history_start: dt.date | None = None
+    # Partial update; a key set to null goes back to the Garmin/default value.
+    preferences: dict[str, str | None] | None = None
 
     @field_validator("shared_categories")
     @classmethod
     def _known_categories(cls, value: list[str] | None) -> list[str] | None:
         if value is not None and any(c not in CATEGORIES for c in value):
             raise ValueError(f"categories must be among {CATEGORIES}")
+        return value
+
+    @field_validator("preferences")
+    @classmethod
+    def _known_preferences(cls, value: dict | None) -> dict | None:
+        if value is not None:
+            prefs.validate(value)
         return value
 
 
@@ -163,6 +177,9 @@ def update_person(person_id: int, body: PersonUpdate, me: Me, db: DB) -> dict:
         person.shared_categories = [c for c in CATEGORIES if c in changes["shared_categories"]]
     if "history_start" in changes:
         person.history_start = changes["history_start"]
+    if changes.get("preferences") is not None:
+        merged = {**(person.preferences or {}), **changes["preferences"]}
+        person.preferences = {k: v for k, v in merged.items() if v is not None} or None
     return person_out(db, person, me)
 
 

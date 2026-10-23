@@ -1,5 +1,5 @@
-import { formatMetric } from '../lib/format'
 import type { Bucket, MetricDef, Person, SeriesResponse } from '../lib/types'
+import { useUnits } from '../lib/units'
 import {
   ChartCard,
   mergeSeries,
@@ -43,11 +43,14 @@ export function MetricChart({
   height?: number
   subtitle?: string
 }) {
+  const units = useUnits()
   if (!metric) return null
+  // Values arrive metric; show them in the viewer's units.
+  const shown = units.metric(metric)
   const visible = people.filter((p) => !response?.people[String(p.id)]?.hidden.includes(metric.key))
   const hiddenNames = people.filter((p) => !visible.includes(p)).map((p) => p.name)
-  const rows = mergeSeries(response, visible, metric.key)
-  const format = (v: number | null) => formatMetric(metric, v)
+  const rows = mergeSeries(response, visible, metric.key, (v) => shown.toDisplay(v))
+  const format = (v: number | null) => shown.format(v)
   const per = metric.agg === 'sum' ? (bucket === 'day' ? 'per day' : `per ${bucket}`) : ''
   const legendValues: Record<number, string> = {}
   for (const person of visible) {
@@ -59,7 +62,7 @@ export function MetricChart({
 
   return (
     <ChartCard
-      title={metric.label + (metric.unit ? ` (${metric.unit})` : '')}
+      title={metric.label + (shown.def.unit ? ` (${shown.def.unit})` : '')}
       subtitle={notes.filter(Boolean).join(' · ') || undefined}
       legend={<PeopleLegend people={visible} values={legendValues} shape={kind === 'bar' ? 'rect' : 'line'} />}
       loading={loading}
@@ -67,12 +70,13 @@ export function MetricChart({
       table={<PeopleTable rows={rows} people={visible} bucket={bucket} format={format} />}
     >
       {kind === 'bar' ? (
-        <PeopleBarChart rows={rows} people={visible} metric={metric} bucket={bucket} height={height} referenceY={referenceY} />
+        <PeopleBarChart rows={rows} people={visible} metric={shown.def} format={format} bucket={bucket} height={height} referenceY={referenceY} />
       ) : (
         <PeopleLineChart
           rows={rows}
           people={visible}
-          metric={metric}
+          metric={shown.def}
+          format={format}
           bucket={bucket}
           height={height}
           connectNulls={connectNulls}

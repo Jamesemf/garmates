@@ -3,9 +3,10 @@ import { ChartCard, mergeSeries, PeopleLegend, PeopleLineChart, PeopleTable } fr
 import { FilterBar } from '../components/FilterBar'
 import { DeltaChip } from '../components/MetricCompareCard'
 import { PageHeader, PersonKey, Segmented } from '../components/ui'
-import { formatMetric, formatNumber } from '../lib/format'
+import { formatNumber } from '../lib/format'
 import { useCatalog, useFilters, useSeries, useSummary } from '../lib/hooks'
 import type { MetricDef, MetricSummary, Person } from '../lib/types'
+import { useUnits } from '../lib/units'
 
 type Mode = 'raw' | 'relative'
 
@@ -16,6 +17,11 @@ export function ComparePage() {
   const catalog = useCatalog()
   const [mode, setMode] = useState<Mode>('relative')
   const [indexMetric, setIndexMetric] = useState('hrv')
+  const units = useUnits()
+  const show = (metric: MetricDef, value: number | null | undefined) => {
+    const shown = units.metric(metric)
+    return shown.format(value === null || value === undefined ? null : shown.toDisplay(value))
+  }
   const metrics = catalog.data?.metrics ?? []
   const keys = metrics.map((m) => m.key)
   const summary = useSummary(filters.people, keys, filters.start, filters.end, BASELINE_DAYS)
@@ -118,7 +124,7 @@ export function ComparePage() {
                         return (
                           <td key={person.id} className="px-4 py-2 align-top">
                             <div className="flex flex-wrap items-baseline gap-x-2">
-                              <span className="font-semibold text-ink tabular">{formatMetric(metric, s?.value ?? null)}</span>
+                              <span className="font-semibold text-ink tabular">{show(metric, s?.value)}</span>
                               {mode === 'relative' && s?.value !== null && s && (
                                 <DeltaChip metric={metric} summary={s} baselineDays={BASELINE_DAYS} />
                               )}
@@ -159,6 +165,7 @@ function IndexedChart({
   end: string
   baselines: Record<number, number | null>
 }) {
+  const units = useUnits()
   const series = useSeries(people, metric ? [metric.key] : [], start, end, 'day')
   if (!metric) return null
   const withBaseline = people.filter((p) => baselines[p.id])
@@ -176,7 +183,7 @@ function IndexedChart({
         <div className="flex flex-wrap items-center justify-between gap-2">
           <PeopleLegend
             people={withBaseline}
-            values={Object.fromEntries(withBaseline.map((p) => [p.id, `usual ${formatMetric(metric, baselines[p.id])}`]))}
+            values={Object.fromEntries(withBaseline.map((p) => [p.id, `usual ${units.metric(metric).format(baselines[p.id] === null ? null : units.metric(metric).toDisplay(baselines[p.id] as number))}`]))}
           />
           <label className="flex items-center gap-2 text-xs text-ink-2">
             Metric

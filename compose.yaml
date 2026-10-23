@@ -1,0 +1,25 @@
+# Always-on deployment for a Raspberry Pi, NAS or any Docker host.
+#   docker compose up -d --build
+# Then open http://<host-ip>:8000 from any device on your network.
+
+services:
+  dashboard:
+    build: .
+    image: garmin-dashboard:latest
+    container_name: garmin-dashboard
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      # Your local time zone - syncing and day views use "today" in this zone.
+      TZ: ${TZ:-Europe/London}
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      # Database, encrypted Garmin keys (secrets/master.key) and FIT files.
+      # Back this volume up - see README "Backups".
+      - dashboard-data:/data
+
+volumes:
+  dashboard-data:

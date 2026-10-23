@@ -6,17 +6,15 @@ import { MetricChart } from '../components/MetricChart'
 import { PageHeader, PersonKey, Segmented } from '../components/ui'
 import {
   formatDay,
-  formatDistance,
   formatDuration,
   formatLongDay,
   formatNumber,
-  formatPace,
-  formatSpeed,
   SPORT_LABELS,
 } from '../lib/format'
 import { useActivities, useCatalog, useFilters, useSeries, useWorkoutStats } from '../lib/hooks'
 import { usePalette } from '../lib/theme'
 import type { Activity, Bucket, Person, SportStats, WorkoutStats } from '../lib/types'
+import { useUnits } from '../lib/units'
 
 const SPORTS = ['all', 'run', 'ride', 'swim', 'walk', 'strength', 'other'] as const
 type Sport = (typeof SPORTS)[number]
@@ -45,15 +43,19 @@ export function WorkoutsPage() {
   const activities = useActivities(filters.people, filters.start, filters.end, sport === 'all' ? undefined : sport)
   const vo2 = useSeries(filters.people, ['vo2max'], filters.start, filters.end, filters.bucket)
 
+  const units = useUnits()
   const shared = filters.people.filter((p) => stats.data && !stats.data.people[String(p.id)]?.hidden)
-  const measureDef = MEASURES.find((m) => m.value === measure)!
+  const baseMeasure = MEASURES.find((m) => m.value === measure)!
+  // Distance volume is summed in km by the server; show it in the viewer's unit.
+  const measureDef = measure === 'km' ? { ...baseMeasure, unit: units.distanceUnit } : baseMeasure
+  const toDisplay = (v: number) => (measure === 'km' ? units.kmToDisplay(v) : v)
 
   // Volume rows: one per bucket, one column per person.
   const volume = new Map<string, Row>()
   for (const person of shared) {
     for (const bucket of stats.data?.people[String(person.id)]?.buckets ?? []) {
       const row = volume.get(bucket.date) ?? { date: bucket.date }
-      row[personKey(person)] = Math.round(sumSports(bucket.sports, sport, measure) * 10) / 10
+      row[personKey(person)] = Math.round(toDisplay(sumSports(bucket.sports, sport, measure)) * 10) / 10
       volume.set(bucket.date, row)
     }
   }
@@ -64,7 +66,7 @@ export function WorkoutsPage() {
   const totals: Record<number, string> = {}
   for (const p of shared) {
     const by = stats.data?.people[String(p.id)]?.by_sport ?? {}
-    totals[p.id] = `total ${formatVolume(sumSports(by, sport, measure))}`
+    totals[p.id] = `total ${formatVolume(toDisplay(sumSports(by, sport, measure)))}`
   }
 
   return (
@@ -251,6 +253,7 @@ function ZoneBars({ people, stats }: { people: Person[]; stats?: Record<string, 
 }
 
 function ActivityTable({ activities, people }: { activities: Activity[]; people: Person[] }) {
+  const units = useUnits()
   const byId = new Map(people.map((p) => [p.id, p]))
   if (!activities.length) return <p className="text-sm text-ink-2">No activities in this period.</p>
   return (
@@ -278,9 +281,9 @@ function ActivityTable({ activities, people }: { activities: Activity[]; people:
                   </Link>
                   {a.is_pr && <span className="ml-2 text-xs text-ink-2">PR</span>}
                 </td>
-                <td className="px-4 py-2 text-ink">{formatDistance(a.distance_m)}</td>
+                <td className="px-4 py-2 text-ink">{units.distance(a.distance_m)}</td>
                 <td className="px-4 py-2 text-ink">{formatDuration(a.duration_s)}</td>
-                <td className="px-4 py-2 text-ink">{a.sport === 'run' || a.sport === 'walk' ? formatPace(a.avg_speed_mps) : formatSpeed(a.avg_speed_mps)}</td>
+                <td className="px-4 py-2 text-ink">{a.sport === 'run' || a.sport === 'walk' ? units.pace(a.avg_speed_mps) : units.speed(a.avg_speed_mps)}</td>
                 <td className="px-4 py-2 text-ink">{a.avg_hr ? `${Math.round(a.avg_hr)} bpm` : '–'}</td>
                 <td className="px-4 py-2 text-ink">{formatNumber(a.training_load)}</td>
               </tr>

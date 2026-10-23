@@ -133,20 +133,23 @@ def _load_activity_metrics(
 # --- rollups -------------------------------------------------------------------------------
 
 
-def bucket_start(day: dt.date, bucket: str) -> dt.date:
+def bucket_start(day: dt.date, bucket: str, week_start: str = "monday") -> dt.date:
     if bucket == "week":
-        return day - dt.timedelta(days=day.weekday())
+        offset = (day.weekday() + 1) % 7 if week_start == "sunday" else day.weekday()
+        return day - dt.timedelta(days=offset)
     if bucket == "month":
         return day.replace(day=1)
     return day
 
 
-def rollup(series: Series, metric_keys: list[str], bucket: str) -> list[dict]:
+def rollup(
+    series: Series, metric_keys: list[str], bucket: str, week_start: str = "monday"
+) -> list[dict]:
     if bucket == "day":
         return [{"date": d.isoformat(), **values} for d, values in series.items()]
     grouped: dict[dt.date, dict[str, list[float]]] = defaultdict(lambda: defaultdict(list))
     for day, values in series.items():
-        target = grouped[bucket_start(day, bucket)]
+        target = grouped[bucket_start(day, bucket, week_start)]
         for key, value in values.items():
             if value is not None:
                 target[key].append(value)
@@ -223,7 +226,12 @@ def _round(value: float | None, metric: Metric) -> float | None:
 
 
 def workout_stats(
-    db: Session, person_id: int, start: dt.date, end: dt.date, bucket: str
+    db: Session,
+    person_id: int,
+    start: dt.date,
+    end: dt.date,
+    bucket: str,
+    week_start: str = "monday",
 ) -> dict:
     activities = db.scalars(
         select(Activity)
@@ -239,7 +247,8 @@ def workout_stats(
     )
     zones = [0.0] * 5
     for act in activities:
-        for target in (by_sport[act.sport], buckets[bucket_start(act.date, bucket)][act.sport]):
+        period = buckets[bucket_start(act.date, bucket, week_start)]
+        for target in (by_sport[act.sport], period[act.sport]):
             target["count"] += 1
             target["hours"] += (act.duration_s or 0) / 3600
             target["km"] += (act.distance_m or 0) / 1000

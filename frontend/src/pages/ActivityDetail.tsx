@@ -2,18 +2,11 @@ import { Link, useParams } from 'react-router'
 import { ActivityMap } from '../components/ActivityMap'
 import { ChartCard, DataTable, PeopleLineChart, type Row } from '../components/charts'
 import { ErrorNote, PageHeader, PersonKey } from '../components/ui'
-import {
-  formatDistance,
-  formatDuration,
-  formatLongDay,
-  formatNumber,
-  formatPace,
-  formatSpeed,
-  SPORT_LABELS,
-} from '../lib/format'
+import { formatDuration, formatLongDay, formatNumber, SPORT_LABELS } from '../lib/format'
 import { useActivity, usePeople } from '../lib/hooks'
 import { usePalette } from '../lib/theme'
 import type { Person } from '../lib/types'
+import { useUnits } from '../lib/units'
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
@@ -36,6 +29,7 @@ export function ActivityDetailPage() {
   const { data: activity, isLoading, error } = useActivity(Number(activityId))
   const { data: people = [] } = usePeople()
   const palette = usePalette()
+  const units = useUnits()
 
   if (isLoading) return <p className="text-sm text-ink-2">Loading activity (downloading the FIT file the first time)…</p>
   if (error || !activity) return <ErrorNote error={error ?? 'Activity not found'} />
@@ -52,8 +46,10 @@ export function ActivityDetailPage() {
   const toKey = (rows: Row[]) => rows.map((r) => ({ date: r.date, p0: r.v }))
 
   const hrRows = toKey(sample(3))
-  const speedRows = toKey(sample(5, (v) => (pace ? (v > 0.5 ? 1000 / v / 60 : NaN) : v * 3.6)).filter((r) => Number.isFinite(r.v)))
-  const altRows = toKey(sample(4))
+  const speedRows = toKey(
+    sample(5, (v) => (pace ? (v > 0.5 ? units.paceValue(v) : NaN) : units.speedValue(v))).filter((r) => Number.isFinite(r.v)),
+  )
+  const altRows = toKey(sample(4, (v) => units.elevationValue(v)))
   const zones = activity.hr_zone_s ?? []
   const zoneTotal = zones.reduce<number>((a, b) => a + (b ?? 0), 0)
 
@@ -73,11 +69,11 @@ export function ActivityDetailPage() {
         }
       />
       <dl className="mb-5 grid grid-cols-2 gap-4 rounded-xl border border-line bg-surface p-4 sm:grid-cols-4 lg:grid-cols-6">
-        <Stat label="Distance" value={formatDistance(activity.distance_m)} />
+        <Stat label="Distance" value={units.distance(activity.distance_m)} />
         <Stat label="Time" value={formatDuration(activity.duration_s)} />
-        <Stat label={pace ? 'Avg pace' : 'Avg speed'} value={pace ? formatPace(activity.avg_speed_mps) : formatSpeed(activity.avg_speed_mps)} />
+        <Stat label={pace ? 'Avg pace' : 'Avg speed'} value={pace ? units.pace(activity.avg_speed_mps) : units.speed(activity.avg_speed_mps)} />
         <Stat label="Avg / max HR" value={activity.avg_hr ? `${Math.round(activity.avg_hr)} / ${Math.round(activity.max_hr ?? 0)}` : '–'} />
-        <Stat label="Elevation gain" value={activity.elevation_gain_m ? `${Math.round(activity.elevation_gain_m)} m` : '–'} />
+        <Stat label="Elevation gain" value={activity.elevation_gain_m ? units.elevation(activity.elevation_gain_m) : '–'} />
         <Stat label="Calories" value={formatNumber(activity.calories)} />
         <Stat label="Training load" value={formatNumber(activity.training_load)} />
         <Stat label="Aerobic TE" value={formatNumber(activity.aerobic_te, 1)} />
@@ -107,19 +103,19 @@ export function ActivityDetailPage() {
         )}
         {speedRows.length > 0 && (
           <ChartCard
-            title={pace ? 'Pace (min/km)' : 'Speed (km/h)'}
+            title={pace ? `Pace (${units.paceUnit})` : `Speed (${units.speedUnit})`}
             subtitle={pace ? 'Lower is faster' : undefined}
-            table={<DataTable columns={[{ key: 'date', label: 'Elapsed', format: (v) => elapsed(String(v)) }, { key: 'p0', label: pace ? 'min/km' : 'km/h', format: (v) => formatNumber(v as number, 2) }]} rows={speedRows} />}
+            table={<DataTable columns={[{ key: 'date', label: 'Elapsed', format: (v) => elapsed(String(v)) }, { key: 'p0', label: pace ? units.paceUnit : units.speedUnit, format: (v) => formatNumber(v as number, 2) }]} rows={speedRows} />}
           >
             <PeopleLineChart rows={speedRows} people={[single]} xFormat={elapsed} format={(v) => formatNumber(v, 2)} height={200} />
           </ChartCard>
         )}
         {altRows.length > 0 && (
           <ChartCard
-            title="Elevation (m)"
-            table={<DataTable columns={[{ key: 'date', label: 'Elapsed', format: (v) => elapsed(String(v)) }, { key: 'p0', label: 'm' }]} rows={altRows} />}
+            title={`Elevation (${units.elevationUnit})`}
+            table={<DataTable columns={[{ key: 'date', label: 'Elapsed', format: (v) => elapsed(String(v)) }, { key: 'p0', label: units.elevationUnit }]} rows={altRows} />}
           >
-            <PeopleLineChart rows={altRows} people={[single]} xFormat={elapsed} format={(v) => `${formatNumber(v)} m`} height={200} />
+            <PeopleLineChart rows={altRows} people={[single]} xFormat={elapsed} format={(v) => `${formatNumber(v)} ${units.elevationUnit}`} height={200} />
           </ChartCard>
         )}
         {zoneTotal > 0 && (

@@ -49,6 +49,55 @@ network, open `http://<this-pc's-IP>:8000`. On Windows you may need to allow
 inbound TCP 8000 for *Private* networks in Windows Defender Firewall. Python will usually
 prompt for this the first time it runs.
 
+## Always-on: Docker on a Raspberry Pi or NAS
+
+The image builds the React app and runs the server. It works on `amd64` (PC, most NAS
+boxes) and `arm64` (Raspberry Pi 4/5 with a 64-bit OS, ARM NAS boxes).
+
+**Build directly on the device** (simplest). Clone the repo onto the Pi or NAS, then:
+
+```bash
+TZ=Europe/London docker compose up -d --build
+```
+
+Open `http://<device-ip>:8000`. The container restarts automatically. All data lives in the
+`dashboard-data` volume.
+
+**Or build on your PC and copy the image across**, which is faster than building on a Pi:
+
+```bash
+docker buildx build --platform linux/arm64 -t garmin-dashboard:latest -o type=docker,dest=garmin-dashboard-arm64.tar .
+```
+```bash
+docker load -i garmin-dashboard-arm64.tar
+```
+
+The second command runs on the Pi. Then `docker compose up -d` there, without `--build`.
+
+**Moving existing data from this PC into the container.** With the container created,
+copy the `data/` folder contents (including `secrets/master.key`) into the volume:
+
+```bash
+docker compose cp ./data/. dashboard:/data
+```
+```bash
+docker compose exec --user root dashboard chown -R dashboard:dashboard /data
+```
+```bash
+docker compose restart
+```
+
+`docker cp` writes files as root and the app runs as an unprivileged user, so the `chown`
+step is needed.
+
+**Backing up the volume:**
+
+```bash
+docker run --rm -v garmin-dashboard_dashboard-data:/data -v "$PWD":/backup alpine tar czf /backup/dashboard-backup.tgz -C /data .
+```
+
+Set `TZ` to your time zone. "Today" for syncing and the Day view follows it.
+
 ## How it works
 
 ```

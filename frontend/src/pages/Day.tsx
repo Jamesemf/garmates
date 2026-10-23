@@ -6,6 +6,7 @@ import { addDays, formatDuration, formatLongDay, formatNumber, toIsoDay } from '
 import { useDay, useFilters } from '../lib/hooks'
 import { usePalette } from '../lib/theme'
 import type { DayPerson, Person } from '../lib/types'
+import { useUnits } from '../lib/units'
 
 const SLOT_MINUTES = 6
 
@@ -13,11 +14,6 @@ const SLOT_MINUTES = 6
 function hourTicks(rows: Row[]): string[] {
   const present = new Set(rows.map((r) => r.date))
   return Array.from({ length: 8 }, (_, i) => String(i * 180)).filter((t) => present.has(t))
-}
-
-function timeOfDay(minutes: string | number): string {
-  const m = Number(minutes)
-  return `${String(Math.floor(m / 60) % 24).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`
 }
 
 /** Overlay intraday series by local time of day, in fixed slots so people line up. */
@@ -53,6 +49,7 @@ export function DayPage() {
     setParams(next, { replace: true })
   }
   const { data, isFetching } = useDay(filters.people, date)
+  const { timeOfDay } = useUnits()
   const people = filters.people
   const hrRows = overlay(people, data?.people, 'heart_rate')
   const bbRows = overlay(people, data?.people, 'body_battery')
@@ -171,7 +168,8 @@ function SleepWindows({ people, day, date }: { people: Person[]; day?: Record<st
     .filter((w): w is NonNullable<typeof w> => w !== null)
   if (!windows.length) return null
   const ticks = [18, 21, 0, 3, 6, 9, 12]
-  const clock = (ms: number) => new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  const units = useUnits()
+  const clock = (ms: number) => units.clock(new Date(ms))
   return (
     <ChartCard title="Sleep window" subtitle="Bedtime to wake, local time" className="mt-4">
       <div className="space-y-2.5">
@@ -193,11 +191,11 @@ function SleepWindows({ people, day, date }: { people: Person[]; day?: Record<st
         <div className="grid grid-cols-[7rem_minmax(0,1fr)] gap-3">
           <span />
           <div className="relative h-4 text-[11px] text-muted tabular">
-            {ticks.map((h, i) => {
+            {ticks.map((h) => {
               const offset = ((h - 18 + 24) % 24) / 20
               return (
                 <span key={h} className="absolute -translate-x-1/2" style={{ left: `${offset * 100}%` }}>
-                  {i === 0 || h === 0 || h === 12 ? `${String(h).padStart(2, '0')}:00` : String(h).padStart(2, '0')}
+                  {units.timeOfDay(h * 60)}
                 </span>
               )
             })}

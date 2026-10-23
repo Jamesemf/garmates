@@ -31,6 +31,8 @@ class Metric:
     decimals: int = 0
     scale: float = 1.0  # multiply stored value by this for display units
     description: str = ""
+    # Physical quantity the UI may convert to the viewer's units (distance_km, mass_kg, volume_ml)
+    quantity: str | None = None
 
 
 METRICS: tuple[Metric, ...] = (
@@ -60,7 +62,7 @@ METRICS: tuple[Metric, ...] = (
     Metric("steps", "Steps", "", "activity", "daily", "steps", agg="sum"),
     Metric("step_goal", "Step goal", "", "activity", "daily", "step_goal", direction="none"),
     Metric("distance_km", "Distance on foot", "km", "activity", "daily", "distance_m",
-           agg="sum", decimals=1, scale=1 / 1000),
+           agg="sum", decimals=1, scale=1 / 1000, quantity="distance_km"),
     Metric("floors", "Floors climbed", "", "activity", "daily", "floors_up", agg="sum"),
     Metric("active_kcal", "Active calories", "kcal", "activity", "daily", "calories_active",
            agg="sum"),
@@ -74,21 +76,22 @@ METRICS: tuple[Metric, ...] = (
     Metric("workout_hours", "Workout time", "h", "workouts", "activities", "duration_s",
            agg="sum", decimals=1, scale=1 / 3600),
     Metric("workout_km", "Workout distance", "km", "workouts", "activities", "distance_m",
-           agg="sum", decimals=1, scale=1 / 1000),
+           agg="sum", decimals=1, scale=1 / 1000, quantity="distance_km"),
     Metric("training_load", "Training load", "", "workouts", "activities", "training_load",
            agg="sum", description="Sum of Garmin's per-activity training load."),
     Metric("vo2max", "VO2 max", "ml/kg/min", "workouts", "activities", "vo2max", decimals=1,
            description="Latest VO2 max estimate recorded with an activity."),
     # Body & health
     Metric("weight", "Weight", "kg", "body", "weight", "weight_kg", direction="none",
-           decimals=1),
+           decimals=1, quantity="mass_kg"),
     Metric("body_fat", "Body fat", "%", "body", "weight", "body_fat_pct", direction="down",
            decimals=1),
     Metric("bmi", "BMI", "", "body", "weight", "bmi", direction="none", decimals=1),
     Metric("spo2", "Pulse Ox (avg)", "%", "body", "daily", "spo2_avg"),
     Metric("respiration", "Respiration (avg)", "brpm", "body", "daily", "resp_avg",
            direction="none"),
-    Metric("hydration", "Hydration", "ml", "body", "daily", "hydration_ml", agg="sum"),
+    Metric("hydration", "Hydration", "ml", "body", "daily", "hydration_ml", agg="sum",
+           quantity="volume_ml"),
     Metric("fitness_age", "Fitness age", "yrs", "body", "fitness_age", "fitness_age",
            direction="down", decimals=1),
 )

@@ -17,6 +17,7 @@ from .deps import DB, Me, PeopleParam, date_range, get_person_or_404, visible_ca
 router = APIRouter(prefix="/api", tags=["data"])
 
 Bucket = Literal["day", "week", "month"]
+WeekStart = Literal["monday", "sunday"]
 
 
 def _metric_list(metrics: str) -> list[str]:
@@ -48,6 +49,7 @@ def series(
     start: dt.date | None = None,
     end: dt.date | None = None,
     bucket: Bucket = "day",
+    week_start: WeekStart = "monday",
 ) -> dict:
     """Per-person time series for the requested metrics."""
     start, end = date_range(start, end)
@@ -57,7 +59,7 @@ def series(
         allowed, hidden = _allowed(me, person, keys)
         data = analytics.load_daily(db, person.id, allowed, start, end)
         out[str(person.id)] = {
-            "points": analytics.rollup(data, allowed, bucket),
+            "points": analytics.rollup(data, allowed, bucket, week_start),
             "hidden": hidden,
         }
     return {"start": start.isoformat(), "end": end.isoformat(), "bucket": bucket, "people": out}
@@ -214,6 +216,7 @@ def workouts_stats(
     start: dt.date | None = None,
     end: dt.date | None = None,
     bucket: Bucket = "week",
+    week_start: WeekStart = "monday",
 ) -> dict:
     start, end = date_range(start, end, default_days=90)
     out = {}
@@ -221,5 +224,7 @@ def workouts_stats(
         if "workouts" not in visible_categories(me, person):
             out[str(person.id)] = {"hidden": True}
             continue
-        out[str(person.id)] = analytics.workout_stats(db, person.id, start, end, bucket)
+        out[str(person.id)] = analytics.workout_stats(
+            db, person.id, start, end, bucket, week_start
+        )
     return {"start": start.isoformat(), "end": end.isoformat(), "bucket": bucket, "people": out}

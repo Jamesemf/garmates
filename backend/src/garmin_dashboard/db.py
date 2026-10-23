@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterator
 from contextlib import contextmanager
 
-from sqlalchemy import Engine, create_engine, event
+from sqlalchemy import Engine, create_engine, event, inspect, text
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 
@@ -38,7 +38,30 @@ def init_engine(database_url: str) -> Engine:
     from . import models  # noqa: F401  (register tables)
 
     Base.metadata.create_all(_engine)
+    _add_missing_columns(_engine)
     return _engine
+
+
+def _add_missing_columns(engine: Engine) -> None:
+    """Minimal forward migration: add new nullable columns to tables created by older versions.
+
+    create_all() only creates missing tables, so a column added to a model later would be
+    absent from an existing database. Only nullable columns without server defaults are
+    added; anything more involved needs a real migration.
+    """
+    inspector = inspect(engine)
+    with engine.begin() as conn:
+        for table in Base.metadata.sorted_tables:
+            if not inspector.has_table(table.name):
+                continue
+            existing = {col["name"] for col in inspector.get_columns(table.name)}
+            for column in table.columns:
+                if column.name in existing or not column.nullable:
+                    continue
+                col_type = column.type.compile(dialect=engine.dialect)
+                conn.execute(
+                    text(f'ALTER TABLE "{table.name}" ADD COLUMN "{column.name}" {col_type}')
+                )
 
 
 def get_engine() -> Engine:

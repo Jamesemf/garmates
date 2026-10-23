@@ -49,6 +49,10 @@ class Person(Base):
     is_demo: Mapped[bool] = mapped_column(Boolean, default=False)
     shared_categories: Mapped[list[str]] = mapped_column(JSON, default=lambda: list(CATEGORIES))
     history_start: Mapped[dt.date | None] = mapped_column(Date)
+    # Display preferences this person chose (units, week start, clock); see prefs.py.
+    preferences: Mapped[dict | None] = mapped_column(JSON)
+    # Same keys, derived from their Garmin profile at each sync; used where they haven't chosen.
+    garmin_preferences: Mapped[dict | None] = mapped_column(JSON)
     created_at: Mapped[dt.datetime] = mapped_column(DateTime, default=utcnow)
 
     credential: Mapped[GarminCredential | None] = relationship(

@@ -3,9 +3,10 @@ import { Link } from 'react-router'
 import { FilterBar } from '../components/FilterBar'
 import { MetricCompareCard, type DisplayOptions } from '../components/MetricCompareCard'
 import { EmptyState, PageHeader, PersonKey, Segmented } from '../components/ui'
-import { addDays, formatDistance, formatDuration, formatLongDay, SPORT_LABELS, toIsoDay } from '../lib/format'
+import { addDays, formatDuration, formatLongDay, SPORT_LABELS, toIsoDay } from '../lib/format'
 import { useActivities, useCatalog, useFilters, useSeries, useSummary } from '../lib/hooks'
 import type { MetricSummary, Person } from '../lib/types'
+import { useUnits } from '../lib/units'
 
 const CARDS: { key: string; display?: DisplayOptions }[] = [
   { key: 'sleep_score' },
@@ -118,6 +119,7 @@ export function OverviewPage() {
 function RecentWorkouts({ people }: { people: Person[] }) {
   const end = toIsoDay(new Date())
   const { data } = useActivities(people, addDays(end, -30), end)
+  const units = useUnits()
   const byId = new Map(people.map((p) => [p.id, p]))
   const recent = (data?.activities ?? []).slice(0, 8)
   return (
@@ -143,7 +145,7 @@ function RecentWorkouts({ people }: { people: Person[] }) {
                     <span className="text-ink-2"> · {formatLongDay(a.date)}</span>
                   </span>
                   <span className="col-start-2 row-span-2 row-start-1 self-center text-right text-sm text-ink-2 tabular sm:col-start-auto sm:row-span-1">
-                    {a.distance_m ? `${formatDistance(a.distance_m)} · ` : ''}
+                    {a.distance_m ? `${units.distance(a.distance_m)} · ` : ''}
                     {formatDuration(a.duration_s)}
                   </span>
                 </Link>

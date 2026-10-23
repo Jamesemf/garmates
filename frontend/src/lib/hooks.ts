@@ -154,6 +154,11 @@ export function useFilters(defaultRange = '30d'): Filters {
 
 // --- data ----------------------------------------------------------------------------------
 
+/** Weekly roll-ups follow the viewer's chosen first day of the week. */
+function useWeekStart(): string {
+  return useAuthState().data?.me?.preferences?.week_start ?? 'monday'
+}
+
 const ids = (people: Person[] | number[]) =>
   people.map((p) => (typeof p === 'number' ? p : p.id)).join(',')
 
@@ -164,8 +169,9 @@ export function useSeries(
   end: string,
   bucket: Bucket,
 ) {
+  const weekStart = useWeekStart()
   return useQuery({
-    queryKey: ['series', ids(people), metrics.join(','), start, end, bucket],
+    queryKey: ['series', ids(people), metrics.join(','), start, end, bucket, weekStart],
     queryFn: () =>
       api.get<SeriesResponse>('/api/series', {
         people: ids(people),
@@ -173,6 +179,7 @@ export function useSeries(
         start,
         end,
         bucket,
+        week_start: weekStart,
       }),
     enabled: people.length > 0 && metrics.length > 0,
     placeholderData: keepPreviousData,
@@ -226,14 +233,16 @@ export function useActivity(activityId: number) {
 }
 
 export function useWorkoutStats(people: Person[], start: string, end: string, bucket: Bucket) {
+  const weekStart = useWeekStart()
   return useQuery({
-    queryKey: ['workout-stats', ids(people), start, end, bucket],
+    queryKey: ['workout-stats', ids(people), start, end, bucket, weekStart],
     queryFn: () =>
       api.get<{ people: Record<string, WorkoutStats> }>('/api/workouts/stats', {
         people: ids(people),
         start,
         end,
         bucket,
+        week_start: weekStart,
       }),
     enabled: people.length > 0,
     placeholderData: keepPreviousData,

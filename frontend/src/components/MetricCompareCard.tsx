@@ -1,5 +1,6 @@
 import { formatNumber } from '../lib/format'
 import { usePalette } from '../lib/theme'
+import { useUnits } from '../lib/units'
 import type { MetricDef, MetricSummary, Person } from '../lib/types'
 import { Sparkline } from './charts'
 import { cx } from './ui'
@@ -61,8 +62,10 @@ export function MetricCompareCard({
   display?: DisplayOptions
 }) {
   const palette = usePalette()
+  const shown = useUnits().metric(metric)
   const factor = display?.factor ?? 1
-  const unit = display?.suffix ?? (metric.unit ? ` ${metric.unit}` : '')
+  const unit = display?.suffix ?? (shown.def.unit ? ` ${shown.def.unit}` : '')
+  const stones = metric.quantity === 'mass_kg' && shown.def.unit === 'st'
   return (
     <section className="min-w-0 rounded-xl border border-line bg-surface p-4">
       <h2 className="mb-3 text-sm font-semibold text-ink" title={metric.description || undefined}>
@@ -93,8 +96,12 @@ export function MetricCompareCard({
               ) : (
                 <span className="flex min-w-0 flex-wrap items-baseline gap-x-2">
                   <span className="text-2xl font-semibold tracking-tight text-ink">
-                    {value === null ? '–' : formatNumber(value * factor, metric.decimals)}
-                    {value !== null && <span className="text-sm font-normal text-ink-2">{unit}</span>}
+                    {value === null
+                      ? '–'
+                      : stones
+                        ? shown.format(shown.toDisplay(value))
+                        : formatNumber(shown.toDisplay(value) * factor, shown.def.decimals)}
+                    {value !== null && !stones && <span className="text-sm font-normal text-ink-2">{unit}</span>}
                   </span>
                   {value !== null && <DeltaChip metric={metric} summary={summary} baselineDays={baselineDays} />}
                 </span>
