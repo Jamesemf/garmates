@@ -11,6 +11,8 @@ import type {
   Challenge,
   Goal,
   DayResponse,
+  DigestResponse,
+  Insight,
   MetricDef,
   Person,
   SeriesResponse,
@@ -297,5 +299,27 @@ export function useGoalMutation<TBody = unknown, TResult = unknown>(fn: (body: T
       client.invalidateQueries({ queryKey: ['goals'] })
       client.invalidateQueries({ queryKey: ['challenges'] })
     },
+  })
+}
+
+// --- digest & insights -----------------------------------------------------------------------
+
+export function useDigest(people: Person[], week: string | null) {
+  const weekStart = useWeekStart()
+  return useQuery({
+    queryKey: ['digest', ids(people), week ?? 'last', weekStart],
+    queryFn: () =>
+      api.get<DigestResponse>('/api/digest', { people: ids(people), week: week ?? undefined, week_start: weekStart }),
+    enabled: people.length > 0,
+    placeholderData: keepPreviousData,
+  })
+}
+
+export function useInsights(people: Person[], days = 90) {
+  return useQuery({
+    queryKey: ['insights', ids(people), days],
+    queryFn: () => api.get<{ days: number; people: Record<string, Insight[]> }>('/api/insights', { people: ids(people), days }),
+    enabled: people.length > 0,
+    staleTime: 5 * 60_000,
   })
 }

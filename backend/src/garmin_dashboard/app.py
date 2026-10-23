@@ -13,7 +13,7 @@ from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import select
 
-from .api import auth, data, goals, people
+from .api import auth, data, goals, insights, people
 from .api.deps import CSRF_HEADER
 from .config import Settings, get_settings
 from .db import init_engine, session_scope
@@ -82,6 +82,7 @@ def create_app(settings: Settings | None = None, *, start_scheduler: bool = True
     app.include_router(people.demo_router)
     app.include_router(data.router)
     app.include_router(goals.router)
+    app.include_router(insights.router)
 
     dist = settings.frontend_dist
     if (dist / "index.html").exists():

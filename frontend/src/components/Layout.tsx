@@ -8,6 +8,7 @@ import { cx, StatusBadge } from './ui'
 
 const NAV = [
   { to: '/', label: 'Overview' },
+  { to: '/digest', label: 'Weekly digest' },
   { to: '/sleep', label: 'Sleep & recovery' },
   { to: '/activity', label: 'Daily activity' },
   { to: '/workouts', label: 'Workouts' },

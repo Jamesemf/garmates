@@ -8,6 +8,7 @@ import { AuthPage } from './pages/Auth'
 import { BodyPage } from './pages/Body'
 import { ComparePage } from './pages/Compare'
 import { DayPage } from './pages/Day'
+import { DigestPage } from './pages/Digest'
 import { GoalsPage } from './pages/Goals'
 import { OverviewPage } from './pages/Overview'
 import { PeoplePage } from './pages/People'
@@ -35,6 +36,7 @@ export default function App() {
         <Route path="compare" element={<ComparePage />} />
         <Route path="day" element={<DayPage />} />
         <Route path="goals" element={<GoalsPage />} />
+        <Route path="digest" element={<DigestPage />} />
         <Route path="people" element={<PeoplePage me={data.me} />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

@@ -12,6 +12,28 @@ or against each person's own baseline.
 - **Runs on:** a single PC on your home network. Other devices on the network open it in
   a browser.
 
+## What's in it
+
+| Page | What it shows |
+|---|---|
+| **Overview** | Each person's last 7/14/30 days vs their own usual, with sparklines and recent workouts |
+| **Weekly digest** | The week vs the previous four, highlights, goal results, and 90-day patterns |
+| **Sleep & recovery** | Sleep score/duration/stages, HRV, resting HR, Body Battery, stress, bedtime and wake time |
+| **Daily activity** | Steps, intensity minutes, calories, distance, floors |
+| **Workouts** | Volume by sport, VO2 max, acute/chronic load, HR zones, activity list and detail with maps |
+| **Body & health** | Weight, body fat, SpO2, respiration, hydration, fitness age |
+| **Compare** | Head-to-head table (raw or vs own usual), and any metric indexed to each person's baseline |
+| **Goals & challenges** | Personal targets with streaks, and challenges scored by total, average or improvement |
+| **Day view** | One date side by side: sleep windows, intraday heart rate and Body Battery |
+| **People & keys** | Garmin keys, sync status, sharing, display units, logins |
+
+Display preferences are per viewer: distance, weight (kg/lb/stone), hydration, elevation,
+week start and 12/24-hour clock. They default to each person's Garmin profile.
+
+The **patterns** on the digest page are associations in each person's own data, such as
+sleep after workout days, late nights vs HRV, and bedtime vs sleep score. They only appear
+with enough nights (≥8 per group, or ≥21 paired days) and a clear effect size.
+
 ## Quick start (Windows, miniconda)
 
 ```bash

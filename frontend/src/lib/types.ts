@@ -234,3 +234,77 @@ export interface Challenge {
   entries: ChallengeEntry[]
   race: ({ date: string } & Record<string, number | string>)[]
 }
+
+export interface DigestMetric {
+  value: number | null
+  usual: number | null
+  delta_pct: number | null
+  days: number
+  spread_min?: number | null
+}
+
+export type Highlight =
+  | { kind: 'best_night' | 'worst_night' | 'most_active_day'; date: string; value: number; metric: string }
+  | {
+      kind: 'biggest_workout'
+      date: string
+      activity_id: number
+      name: string | null
+      sport: string
+      duration_s: number | null
+      distance_m: number | null
+      training_load: number | null
+    }
+  | { kind: 'personal_record'; date: string; activity_id: number; name: string | null; sport: string }
+
+export interface DigestGoal {
+  goal_id: number
+  metric: string
+  period: 'day' | 'week'
+  comparison: 'at_least' | 'at_most'
+  target: number
+  met_days?: number
+  days?: number
+  value?: number | null
+  met?: boolean | null
+}
+
+export interface DigestPerson {
+  week: string
+  week_end: string
+  metrics: Record<string, DigestMetric>
+  highlights: Highlight[]
+  notable: { metric: string; delta_pct: number; good: boolean }[]
+  goals: DigestGoal[]
+  has_data: boolean
+}
+
+export interface DigestResponse {
+  week: string
+  week_end: string
+  people: Record<string, DigestPerson>
+}
+
+export type Insight =
+  | {
+      id: string
+      kind: 'groups'
+      title: string
+      outcome: string
+      groups: { label: string; mean: number; n: number }[]
+      effect: number
+      strength: string
+      favourable: boolean | null
+    }
+  | {
+      id: string
+      kind: 'correlation'
+      title: string
+      x: string
+      y: string
+      r: number
+      n: number
+      strength: string
+      summary: string
+      points: [number, number][]
+    }
