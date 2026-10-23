@@ -154,6 +154,7 @@ function DaySummary({ person, entry }: { person: Person; entry?: DayPerson }) {
 /** Bedtime → wake bars on one clock, so everyone's night lines up. */
 function SleepWindows({ people, day, date }: { people: Person[]; day?: Record<string, DayPerson>; date: string }) {
   const palette = usePalette()
+  const units = useUnits()
   // Axis: 18:00 the evening before → 14:00 on the day (20 hours).
   const axisStart = new Date(`${addDays(date, -1)}T18:00:00`).getTime()
   const span = 20 * 3600 * 1000
@@ -168,7 +169,6 @@ function SleepWindows({ people, day, date }: { people: Person[]; day?: Record<st
     .filter((w): w is NonNullable<typeof w> => w !== null)
   if (!windows.length) return null
   const ticks = [18, 21, 0, 3, 6, 9, 12]
-  const units = useUnits()
   const clock = (ms: number) => units.clock(new Date(ms))
   return (
     <ChartCard title="Sleep window" subtitle="Bedtime to wake, local time" className="mt-4">
