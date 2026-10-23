@@ -1,0 +1,28 @@
+# Personal data, encrypted keys, token caches and FIT files - never commit
+data/
+.env
+
+# Garmin's OpenAPI spec (fetched on demand by scripts/extract_openapi_spec.py)
+docs/garmin-personal-api.openapi.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+build/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+*.tsbuildinfo
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local Claude/desktop preview config (machine-specific paths)
+.claude/launch.json

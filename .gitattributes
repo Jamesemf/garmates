@@ -1,0 +1,6 @@
+# Keep LF line endings everywhere (the app is also built into Linux Docker images)
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.fit binary
+*.zip binary

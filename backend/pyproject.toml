@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "garmin-dashboard"
+version = "0.1.0"
+description = "Household Garmin dashboard built on the Garmin Connect Personal API"
+requires-python = ">=3.12"
+dependencies = [
+    "garmin-connect-personal-api-python==1.0.0",
+    "fastapi>=0.115,<1",
+    "uvicorn[standard]>=0.30,<1",
+    "sqlalchemy>=2.0,<3",
+    "pydantic>=2.7,<3",
+    "pydantic-settings>=2.3,<3",
+    "cryptography>=43",
+    "argon2-cffi>=23.1",
+    "fitdecode>=0.10,<1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8,<9",
+    "httpx>=0.27,<1",
+    "ruff>=0.6,<1",
+]
+
+[project.scripts]
+garmin-dashboard = "garmin_dashboard.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra -q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["garmin_dashboard"]
