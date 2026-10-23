@@ -4,3 +4,5 @@
 *.jpg binary
 *.fit binary
 *.zip binary
+# Windows batch files need CRLF
+*.cmd text eol=crlf

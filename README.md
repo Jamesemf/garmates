@@ -36,17 +36,28 @@ with enough nights (≥8 per group, or ≥21 paired days) and a clear effect siz
 
 ## Quick start (Windows, miniconda)
 
+Create the environment once:
+
 ```bash
 conda env create -f environment.yml
 ```
+
+Then start the dashboard from the repo folder, in PowerShell or cmd:
+
 ```bash
-conda activate garmin-dashboard
+.\start.cmd
 ```
+
+`start.cmd` builds the web app on first run and starts the server through `conda run`, so
+it doesn't need `conda activate`. That matters because Windows blocks PowerShell profile
+scripts by default, which is why `conda activate` reports *"Run 'conda init'"* even after
+you've run it.
+
+If you'd rather have `conda activate` work in PowerShell, allow local scripts for your
+user once, then open a new terminal:
+
 ```bash
-cd frontend && npm install && npm run build && cd ..
-```
-```bash
-garmin-dashboard serve
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 ```
 
 Open <http://localhost:8000>. Create the first account (it becomes the admin), then go to
