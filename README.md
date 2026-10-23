@@ -226,6 +226,7 @@ comes from the value Garmin attaches to each activity.
 | `garmin-dashboard serve [--host H] [--port P] [--reload]` | Run the dashboard |
 | `garmin-dashboard sync [--person ID]` | Sync now, in the foreground |
 | `garmin-dashboard reparse` | Rebuild tables from stored Garmin responses |
+| `garmin-dashboard verify [--person ID]` | Data-quality report: coverage, gaps, out-of-range values, raw formats Garmin sent |
 | `garmin-dashboard demo [--remove]` | Add/remove the synthetic demo profiles |
 | `garmin-dashboard reset-password USERNAME` | Recover a locked-out account |
 | `garmin-dashboard --data-dir PATH …` | Use a different data directory |

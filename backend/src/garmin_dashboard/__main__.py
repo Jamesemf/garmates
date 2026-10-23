@@ -58,6 +58,25 @@ def cmd_reparse(args: argparse.Namespace) -> None:
     print(f"Re-parsed {reparse_all(args.person)} rows from stored payloads.")
 
 
+def cmd_verify(args: argparse.Namespace) -> None:
+    import json
+
+    from .models import Person
+    from .verify import people_with_data, report
+
+    _init()
+    with session_scope() as db:
+        demo_ids = set(db.scalars(select(Person.id).where(Person.is_demo.is_(True))))
+        ids = [args.person] if args.person else [
+            pid for pid in people_with_data(db) if pid not in demo_ids
+        ]
+        if not ids:
+            print("No synced Garmin data yet - add a key on the People & keys page first.")
+            return
+        for person_id in ids:
+            print(json.dumps(report(db, person_id), indent=2, default=str))
+
+
 def cmd_demo(args: argparse.Namespace) -> None:
     from .demo import remove_demo, seed_demo
 
@@ -105,6 +124,10 @@ def main(argv: list[str] | None = None) -> None:
     reparse = sub.add_parser("reparse", help="Rebuild tables from stored Garmin responses")
     reparse.add_argument("--person", type=int)
     reparse.set_defaults(func=cmd_reparse)
+
+    verify = sub.add_parser("verify", help="Data-quality report on synced Garmin data")
+    verify.add_argument("--person", type=int)
+    verify.set_defaults(func=cmd_verify)
 
     demo = sub.add_parser("demo", help="Create (or --remove) two synthetic demo profiles")
     demo.add_argument("--remove", action="store_true")

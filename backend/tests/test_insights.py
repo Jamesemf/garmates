@@ -103,3 +103,16 @@ def test_digest_and_insights_endpoints(client, admin):
     assert alex["has_data"] and alex["metrics"]["sleep_score"]["value"] is not None
     insights = client.get("/api/insights", params=params).json()
     assert set(insights["people"]) == {str(i) for i in ids}
+
+
+def test_verify_report_on_demo_data(settings):
+    from garmin_dashboard.verify import report
+
+    ids = seed_demo()
+    with session_scope() as db:
+        result = report(db, ids[0])
+    tables = result["tables"]
+    assert tables["daily_summaries"]["rows"] == 240
+    assert tables["sleep"]["checks"]["implausible_sleep_windows"]["count"] == 0
+    assert result["raw"]["raw_weight_values"]["looks_like"] == "grams"
+    assert result["raw"]["sleep_fields"]["int"] == 240  # epoch-millis timestamps
