@@ -15,7 +15,7 @@ from collections.abc import Callable, Iterable
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from .analytics import bucket_start, load_daily
+from .analytics import bucket_start, load_daily, partial_days
 from .catalog import METRICS_BY_KEY
 from .goals import meets, period_value
 from .models import Activity, Goal
@@ -74,12 +74,16 @@ def weekly_digest(
         ]
         previous = [p for p in previous if p is not None]
         usual = statistics.fmean(previous) if previous else None
+        is_clock = metric.unit == "clock"
+        both = this_week is not None and usual is not None
         metrics[key] = {
             "value": _r(this_week),
             "usual": _r(usual),
+            # A percentage of a time of day means nothing; clock metrics move in minutes.
             "delta_pct": _r((this_week - usual) / abs(usual) * 100)
-            if this_week is not None and usual
+            if both and usual and not is_clock
             else None,
+            "delta_minutes": round((this_week - usual) * 60) if both and is_clock else None,
             "days": len(week_values(key, week)),
         }
 
@@ -231,8 +235,12 @@ def find_insights(
     start = end - dt.timedelta(days=days - 1)
     keys = [k for k in INSIGHT_METRICS if METRICS_BY_KEY[k].category in categories]
     series = load_daily(db, person_id, keys, start - dt.timedelta(days=1), end)
+    partial = partial_days(db, person_id, start - dt.timedelta(days=1), end)
 
     def value(day: dt.date, key: str) -> float | None:
+        # A half-recorded day's totals (steps…) would look like a lazy day.
+        if day in partial and METRICS_BY_KEY[key].agg == "sum":
+            return None
         return series.get(day, {}).get(key)
 
     insights: list[dict] = []

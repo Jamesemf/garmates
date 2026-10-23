@@ -103,6 +103,9 @@ def test_classify_sport():
     assert parsers.classify_sport("lap_swimming") == "swim"
     assert parsers.classify_sport("hiking") == "walk"
     assert parsers.classify_sport("strength_training") == "strength"
+    assert parsers.classify_sport("badminton") == "team"
+    assert parsers.classify_sport("table_tennis") == "team"
+    assert parsers.classify_sport("basketball") == "team"
     assert parsers.classify_sport("golf") == "other"
     assert parsers.classify_sport(None) == "other"
 

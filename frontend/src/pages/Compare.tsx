@@ -73,7 +73,7 @@ export function ComparePage() {
 
       <IndexedChart
         metric={catalog.byKey[indexMetric]}
-        metrics={metrics.filter((m) => m.direction !== 'none' || m.category === 'body')}
+        metrics={metrics.filter((m) => m.unit !== 'clock' && (m.direction !== 'none' || m.category === 'body'))}
         onMetric={setIndexMetric}
         people={people}
         start={filters.start}

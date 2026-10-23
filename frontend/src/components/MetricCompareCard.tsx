@@ -12,7 +12,18 @@ export interface DisplayOptions {
 }
 
 /** How a change compares with the person's own usual level. */
+/** Clock metrics (bedtime, wake time) move in minutes: "25 min later". */
+export function clockDelta(minutes: number | null | undefined) {
+  if (minutes === null || minutes === undefined) return null
+  if (Math.abs(minutes) < 10) return { arrow: '≈', text: 'usual' }
+  return { arrow: minutes > 0 ? '▲' : '▼', text: `${Math.abs(minutes)} min ${minutes > 0 ? 'later' : 'earlier'}` }
+}
+
 export function deltaTone(metric: MetricDef, summary: MetricSummary | undefined) {
+  if (metric.unit === 'clock') {
+    const clock = clockDelta(summary?.delta_minutes)
+    return clock ? { tone: 'neutral' as const, ...clock } : { tone: 'none' as const, arrow: '', text: '' }
+  }
   if (!summary || summary.delta_pct === null) return { tone: 'none' as const, arrow: '', text: '' }
   const pct = summary.delta_pct
   const small = Math.abs(pct) < 2 || (summary.z !== null && Math.abs(summary.z) < 0.5)
@@ -37,7 +48,7 @@ export function DeltaChip({ metric, summary, baselineDays }: { metric: MetricDef
       <span className="sr-only">
         {tone === 'neutral' && arrow === '≈' ? 'about the same as usual' : `${word} usual`}
       </span>
-      {arrow !== '≈' && <span className="font-normal text-ink-2">vs usual</span>}
+      {arrow !== '≈' && metric.unit !== 'clock' && <span className="font-normal text-ink-2">vs usual</span>}
     </span>
   )
 }

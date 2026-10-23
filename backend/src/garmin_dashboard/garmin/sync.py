@@ -23,7 +23,7 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from typing import Any
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.orm import Session
 
@@ -51,6 +51,8 @@ from .connector import BadRequestError, GarminConnector, GarminError, KeyRejecte
 _LOGGER = logging.getLogger(__name__)
 
 ACTIVITY_PAGE_SIZE = 100
+# How far back a sync will look for data uploaded late (watch not synced for a while).
+MAX_LATE_UPLOAD_DAYS = 90
 
 
 @dataclass(frozen=True)
@@ -206,6 +208,13 @@ class SyncAborted(Exception):
     pass
 
 
+def last_wellness_day(db: Session, person_id: int) -> dt.date | None:
+    """Newest day the watch has uploaded wellness data for (proxy for 'last device sync')."""
+    return db.scalar(
+        select(func.max(DailySummary.date)).where(DailySummary.person_id == person_id)
+    )
+
+
 def _state(db: Session, person_id: int, dataset: str) -> SyncState:
     state = db.get(SyncState, (person_id, dataset))
     if state is None:
@@ -227,6 +236,7 @@ def sync_dataset(
 
     with session_scope() as db:
         synced_through = _state(db, person_id, dataset.name).synced_through
+        last_data_day = last_wellness_day(db, person_id)
 
     def save(windows: list[tuple[dt.date, dt.date, Any]], *, extend: str) -> None:
         nonlocal saved
@@ -247,9 +257,16 @@ def sync_dataset(
     if synced_through is None:
         catch_up_start = max(history_start, today - dt.timedelta(days=dataset.max_days - 1))
     else:
-        catch_up_start = max(
-            history_start, synced_through - dt.timedelta(days=settings.resync_recent_days)
-        )
+        catch_up_start = synced_through - dt.timedelta(days=settings.resync_recent_days)
+        # Asking Garmin about a day doesn't mean the watch had uploaded it. If the newest
+        # wellness data is older than the usual re-sync window (watch not synced for a
+        # while), re-fetch from that day so late uploads - including the rest of that
+        # partial day - still land.
+        if last_data_day is not None and last_data_day < catch_up_start:
+            catch_up_start = max(
+                last_data_day, today - dt.timedelta(days=MAX_LATE_UPLOAD_DAYS)
+            )
+        catch_up_start = max(history_start, catch_up_start)
     for first, last in chunks_backwards(catch_up_start, today, dataset.max_days):
         save(fetch_adaptive(conn, dataset, first, last), extend="forward")
 
@@ -319,7 +336,7 @@ def sync_person(person_id: int, datasets: list[str] | None = None) -> str:
         if person is None:
             raise SyncAborted(f"Unknown person {person_id}")
         history_start = person.history_start or (
-            today - dt.timedelta(days=settings.default_history_days)
+            today - dt.timedelta(days=settings.default_history_days - 1)
         )
         run = SyncRun(person_id=person_id)
         db.add(run)
@@ -374,12 +391,22 @@ def _record_dataset(person_id: int, dataset: str, status: str, error: str | None
 
 
 def reparse_all(person_id: int | None = None) -> int:
-    """Rebuild normalised tables from stored raw payloads (after a parser fix)."""
+    """Rebuild normalised tables from stored raw payloads (after a parser fix).
+
+    Per-day tables are cleared first so rows a fixed parser now rejects disappear. Every
+    synced window's payload is kept, so nothing is lost. Activities are only upserted: their
+    cached GPS tracks hang off them.
+    """
     count = 0
     with session_scope() as db:
         query = select(RawPayload).order_by(RawPayload.fetched_at)
         if person_id is not None:
             query = query.where(RawPayload.person_id == person_id)
+        person_ids = {person_id} if person_id is not None else set(
+            db.scalars(select(RawPayload.person_id).distinct())
+        )
+        for model in (DailySummary, Sleep, Hrv, Weight, FitnessAge):
+            db.execute(delete(model).where(model.person_id.in_(person_ids)))
         for raw in db.scalars(query):
             payload = json.loads(raw.payload)
             dataset = DATASETS_BY_NAME.get(raw.dataset)

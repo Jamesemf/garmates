@@ -80,6 +80,8 @@ export interface MetricSummary {
   latest_date: string | null
   baseline: number | null
   delta_pct: number | null
+  /** Clock metrics (bedtime) change in minutes instead of percent. */
+  delta_minutes: number | null
   z: number | null
   n: number
   baseline_n: number
@@ -239,6 +241,7 @@ export interface DigestMetric {
   value: number | null
   usual: number | null
   delta_pct: number | null
+  delta_minutes: number | null
   days: number
   spread_min?: number | null
 }

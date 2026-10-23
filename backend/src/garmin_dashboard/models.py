@@ -174,6 +174,9 @@ class _PersonDay:
 class DailySummary(_PersonDay, Base):
     __tablename__ = "daily_summaries"
 
+    # Hours of wellness data the watch recorded that day; < ~20 means a partial day
+    # (today, or the last day before the watch stopped syncing).
+    wear_hours: Mapped[float | None] = mapped_column(Float)
     steps: Mapped[int | None] = mapped_column(Integer)
     step_goal: Mapped[int | None] = mapped_column(Integer)
     distance_m: Mapped[float | None] = mapped_column(Float)

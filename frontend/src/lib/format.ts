@@ -97,6 +97,7 @@ export const SPORT_LABELS: Record<string, string> = {
   ride: 'Ride',
   swim: 'Swim',
   walk: 'Walk / hike',
+  team: 'Court & team',
   strength: 'Gym & classes',
   other: 'Other',
 }

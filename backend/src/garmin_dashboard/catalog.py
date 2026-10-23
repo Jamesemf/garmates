@@ -86,7 +86,8 @@ METRICS: tuple[Metric, ...] = (
     Metric("training_load", "Training load", "", "workouts", "activities", "training_load",
            agg="sum", description="Sum of Garmin's per-activity training load."),
     Metric("vo2max", "VO2 max", "ml/kg/min", "workouts", "activities", "vo2max", decimals=1,
-           description="Latest VO2 max estimate recorded with an activity."),
+           description="VO2 max recorded with an activity. Garmin's Personal API currently "
+                       "doesn't include it, so this stays empty until they do."),
     # Body & health
     Metric("weight", "Weight", "kg", "body", "weight", "weight_kg", direction="none",
            decimals=1, quantity="mass_kg"),

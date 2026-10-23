@@ -155,8 +155,6 @@ def _generate(profile: Profile, today: dt.date) -> dict:
             start_time = dt.datetime.combine(day, dt.time(7 if not weekend else 9, 15))
             next_id += 1
             distance = km * 1000
-            vo2 = 49 + 3 * fitness_trend + rng.gauss(0, 0.3) if "running" in type_key else (
-                42 + 2.5 * fitness_trend + rng.gauss(0, 0.3) if "biking" in type_key else None)
             activities.append({
                 "activityId": next_id,
                 "activityName": {
@@ -177,7 +175,6 @@ def _generate(profile: Profile, today: dt.date) -> dict:
                 "aerobicTrainingEffect": round(min(5, 2 + load / 60), 1),
                 "anaerobicTrainingEffect": round(rng.uniform(0.2, 2.2), 1),
                 "activityTrainingLoad": round(load, 1),
-                "vO2MaxValue": round(vo2, 1) if vo2 else None,
                 **{f"hrTimeInZone_{n + 1}": duration * z for n, z in enumerate(zones)},
                 "averageRunningCadenceInStepsPerMinute": 168 + rng.gauss(0, 4)
                 if "running" in type_key else None,
@@ -199,8 +196,12 @@ def _generate(profile: Profile, today: dt.date) -> dict:
                          - (6 if weekend else 0)))
         bb_max = int(max(20, min(100, 60 + score * 0.35 + rng.gauss(0, 6) - 20 * illness)))
         bb_min = int(max(5, bb_max - 45 - day_load / 8 + rng.gauss(0, 6)))
+        # Like the real API: today is only partly recorded so far.
+        wear_hours = 14.0 if i == DEMO_DAYS - 1 else 24.0
         daily.append({
             "calendarDate": day.isoformat(),
+            "includesWellnessData": True,
+            "wellnessChronology": {"totalDurationInMillis": int(wear_hours * 3600e3)},
             "movement": {
                 "steps": {"goal": 10000 if profile.seed == 7 else 8000, "value": steps,
                           "distanceInMeters": steps * 0.78},

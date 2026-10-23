@@ -103,11 +103,17 @@ def parse_daily_summaries(payload: Any) -> list[Row]:
         day = parse_date(_get(item, "calendarDate"))
         if day is None:
             continue
+        # Days where only an activity was recorded (watch not worn otherwise) carry just
+        # that activity's calories - counting them as a day's totals skews averages.
+        if _get(item, "includesWellnessData") is False:
+            continue
+        wear_ms = _num(_get(item, "wellnessChronology", "totalDurationInMillis"))
         hydration_goal = _get(item, "hydration", "goalInFractionalMl")
         if hydration_goal is None:
             hydration_goal = _get(item, "hydration", "goalInMl")
         rows[day] = {
             "date": day,
+            "wear_hours": None if wear_ms is None else round(wear_ms / 3.6e6, 2),
             "steps": _int(_get(item, "movement", "steps", "value")),
             "step_goal": _int(_get(item, "movement", "steps", "goal"), allow_zero=False),
             "distance_m": _num(_get(item, "movement", "steps", "distanceInMeters")),
@@ -286,6 +292,9 @@ _SPORT_KEYWORDS = (
     ("ride", ("cycling", "biking", "bike", "ride", "spinning", "gravel", "mtb")),
     ("swim", ("swim",)),
     ("walk", ("walking", "hiking", "hike", "walk")),
+    ("team", ("badminton", "tennis", "squash", "padel", "pickleball", "racquet", "basketball",
+              "soccer", "football", "volleyball", "hockey", "rugby", "netball", "handball",
+              "cricket", "baseball", "softball", "lacrosse", "ultimate")),
     ("strength", ("strength", "hiit", "cardio", "fitness_equipment", "indoor_rowing", "yoga",
                   "pilates", "elliptical", "stair")),
 )

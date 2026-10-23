@@ -8,7 +8,7 @@ import statistics
 from collections import defaultdict
 from collections.abc import Iterable
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from .catalog import METRICS_BY_KEY, Metric
@@ -34,6 +34,34 @@ def _scaled(metric: Metric, value: float | None) -> float | None:
     if value is None:
         return None
     return round(value * metric.scale, max(metric.decimals, 2))
+
+
+COMPLETE_DAY_HOURS = 20  # a 23-hour DST day still counts; a half-synced day doesn't
+# Recordings shorter than this are accidental start/stops, not workouts.
+MIN_WORKOUT_SECONDS = 120
+
+
+def _real_workout():  # noqa: ANN202 - SQLAlchemy expression
+    return or_(Activity.duration_s.is_(None), Activity.duration_s >= MIN_WORKOUT_SECONDS)
+
+
+def partial_days(
+    db: Session, person_id: int, start: dt.date, end: dt.date, today: dt.date | None = None
+) -> set[dt.date]:
+    """Days whose totals are incomplete: today (still in progress) and partly-worn days."""
+    today = today or dt.date.today()
+    rows = db.execute(
+        select(DailySummary.date).where(
+            DailySummary.person_id == person_id,
+            DailySummary.date >= start,
+            DailySummary.date <= end,
+            DailySummary.wear_hours < COMPLETE_DAY_HOURS,
+        )
+    )
+    days = {day for (day,) in rows}
+    if start <= today <= end:
+        days.add(today)
+    return days
 
 
 def clock_hours(moment: dt.datetime, anchor: dt.date) -> float:
@@ -132,7 +160,12 @@ def _load_activity_metrics(
             func.sum(Activity.training_load),
             func.max(Activity.vo2max),
         )
-        .where(Activity.person_id == person_id, Activity.date >= start, Activity.date <= end)
+        .where(
+            Activity.person_id == person_id,
+            Activity.date >= start,
+            Activity.date <= end,
+            _real_workout(),
+        )
         .group_by(Activity.date)
     )
     per_day = {
@@ -206,22 +239,38 @@ def summarise(
     end: dt.date,
     baseline_days: int,
 ) -> dict[str, dict]:
-    """Period average vs the person's own preceding baseline, for each metric."""
+    """Period average vs the person's own preceding baseline, for each metric.
+
+    Totals (steps, calories, workouts…) are averaged over *complete* days only, so today's
+    half-finished count or a partly-worn day doesn't drag the average down. Clock metrics
+    (bedtime) report their change in minutes - a percentage of a time of day is meaningless.
+    """
     baseline_start = start - dt.timedelta(days=baseline_days)
     series = load_daily(db, person_id, metric_keys, baseline_start, end)
+    partial = partial_days(db, person_id, baseline_start, end)
     result = {}
     for key in metric_keys:
         metric = METRICS_BY_KEY.get(key)
         if metric is None:
             continue
-        period = [(d, v[key]) for d, v in series.items() if d >= start and v.get(key) is not None]
-        base = [v[key] for d, v in series.items() if d < start and v.get(key) is not None]
+        skip = partial if metric.agg == "sum" else set()
+        values = [
+            (d, v[key]) for d, v in series.items() if v.get(key) is not None and d not in skip
+        ]
+        period = [(d, x) for d, x in values if d >= start]
+        base = [x for d, x in values if d < start]
         value = statistics.fmean(x for _, x in period) if period else None
         baseline = statistics.fmean(base) if base else None
         spread = statistics.stdev(base) if len(base) >= 3 else None
+        is_clock = metric.unit == "clock"
         delta_pct = (
             (value - baseline) / abs(baseline) * 100
-            if value is not None and baseline not in (None, 0)
+            if value is not None and baseline not in (None, 0) and not is_clock
+            else None
+        )
+        delta_minutes = (
+            round((value - baseline) * 60)
+            if is_clock and value is not None and baseline is not None
             else None
         )
         z = (
@@ -235,6 +284,7 @@ def summarise(
             "latest_date": period[-1][0].isoformat() if period else None,
             "baseline": _round(baseline, metric),
             "delta_pct": round(delta_pct, 1) if delta_pct is not None else None,
+            "delta_minutes": delta_minutes,
             "z": round(z, 2) if z is not None else None,
             "n": len(period),
             "baseline_n": len(base),
@@ -261,7 +311,12 @@ def workout_stats(
 ) -> dict:
     activities = db.scalars(
         select(Activity)
-        .where(Activity.person_id == person_id, Activity.date >= start, Activity.date <= end)
+        .where(
+            Activity.person_id == person_id,
+            Activity.date >= start,
+            Activity.date <= end,
+            _real_workout(),
+        )
         .order_by(Activity.start_local)
     ).all()
 

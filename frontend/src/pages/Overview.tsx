@@ -86,6 +86,12 @@ export function OverviewPage() {
         {CARDS.map(({ key, display }) => {
           const metric = byKey[key]
           if (!metric) return null
+          // Skip metrics nobody has any data for (e.g. VO2 max, which the API doesn't send).
+          const anyData = people.some((p) => {
+            const s = summary.data?.people[String(p.id)]?.metrics[key]
+            return s && (s.value !== null || s.baseline !== null)
+          })
+          if (summary.data && !anyData) return null
           const summaries: Record<number, MetricSummary | undefined> = {}
           const hidden: Record<number, boolean> = {}
           const trends: Record<number, (number | null)[]> = {}

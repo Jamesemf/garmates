@@ -16,7 +16,7 @@ import { usePalette } from '../lib/theme'
 import type { Activity, Bucket, Person, SportStats, WorkoutStats } from '../lib/types'
 import { useUnits } from '../lib/units'
 
-const SPORTS = ['all', 'run', 'ride', 'swim', 'walk', 'strength', 'other'] as const
+const SPORTS = ['all', 'run', 'ride', 'swim', 'walk', 'team', 'strength', 'other'] as const
 type Sport = (typeof SPORTS)[number]
 type Measure = 'hours' | 'km' | 'load' | 'count'
 
@@ -106,6 +106,7 @@ export function WorkoutsPage() {
           bucket={filters.bucket}
           loading={vo2.isFetching}
           connectNulls
+          hideWhenEmpty
           subtitle="Garmin's estimate, recorded with runs and rides"
         />
       </div>

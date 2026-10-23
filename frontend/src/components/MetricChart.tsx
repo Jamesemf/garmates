@@ -31,6 +31,7 @@ export function MetricChart({
   referenceY,
   height,
   subtitle,
+  hideWhenEmpty = false,
 }: {
   metric: MetricDef | undefined
   people: Person[]
@@ -42,6 +43,8 @@ export function MetricChart({
   referenceY?: number
   height?: number
   subtitle?: string
+  /** Render nothing (instead of an empty card) when there's no data at all. */
+  hideWhenEmpty?: boolean
 }) {
   const units = useUnits()
   if (!metric) return null
@@ -51,6 +54,7 @@ export function MetricChart({
   const hiddenNames = people.filter((p) => !visible.includes(p)).map((p) => p.name)
   const rows = mergeSeries(response, visible, metric.key, (v) => shown.toDisplay(v))
   const format = (v: number | null) => shown.format(v)
+  if (hideWhenEmpty && !loading && rows.length === 0) return null
   const per = metric.agg === 'sum' ? (bucket === 'day' ? 'per day' : `per ${bucket}`) : ''
   const legendValues: Record<number, string> = {}
   for (const person of visible) {

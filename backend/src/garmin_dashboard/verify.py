@@ -62,10 +62,17 @@ def _table_report(db: Session, model: type, person_id: int) -> dict[str, Any]:
     for column in KEY_COLUMNS.get(model, []):
         missing = sum(1 for r in rows if getattr(r, column) is None)
         report["missing_pct"][column] = round(missing / len(rows) * 100)
+    if model is DailySummary:
+        partial = [r for r in rows if r.wear_hours is not None and r.wear_hours < 20]
+        report["partial_days"] = [(r.date.isoformat(), r.wear_hours) for r in partial]
+        # An unfinished day (today, or the last before a gap) naturally has low totals.
+        rows_checked = [r for r in rows if r not in partial]
+    else:
+        rows_checked = rows
     for column, low, high in RANGES.get(model, []):
         bad = [
             (r.date.isoformat(), getattr(r, column))
-            for r in rows
+            for r in rows_checked
             if getattr(r, column) is not None and not low <= getattr(r, column) <= high
         ]
         if bad:

@@ -1,6 +1,7 @@
 import { useSearchParams, Link } from 'react-router'
 import { CartesianGrid, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis } from 'recharts'
 import { FilterBar } from '../components/FilterBar'
+import { clockDelta } from '../components/MetricCompareCard'
 import { Button, Card, cx, EmptyState, PageHeader, PersonKey, StatusBadge } from '../components/ui'
 import { addDays, formatDuration, formatLongDay, formatNumber, parseDay, SPORT_LABELS, toIsoDay } from '../lib/format'
 import { useCatalog, useDigest, useFilters, useInsights } from '../lib/hooks'
@@ -96,7 +97,15 @@ function Household({ people, digest }: { people: Person[]; digest: Record<string
   )
 }
 
-function DeltaText({ metric, delta }: { metric: MetricDef; delta: number | null }) {
+function DeltaText({ metric, delta, minutes }: { metric: MetricDef; delta: number | null; minutes: number | null }) {
+  if (metric.unit === 'clock') {
+    const clock = clockDelta(minutes)
+    return clock ? (
+      <span className="text-xs font-medium text-ink-2">
+        <span aria-hidden>{clock.arrow}</span> {clock.text}
+      </span>
+    ) : null
+  }
   if (delta === null) return null
   if (Math.abs(delta) < 3) return <span className="text-xs text-ink-2">≈ usual</span>
   const up = delta > 0
@@ -144,7 +153,7 @@ function PersonDigest({ person, digest }: { person: Person; digest?: DigestPerso
               </dt>
               <dd className="flex flex-wrap items-baseline gap-x-2">
                 <span className="text-lg font-semibold text-ink">{show(key, entry.value)}</span>
-                <DeltaText metric={metric} delta={entry.delta_pct} />
+                <DeltaText metric={metric} delta={entry.delta_pct} minutes={entry.delta_minutes} />
               </dd>
               {key === 'bedtime' && entry.spread_min != null && (
                 <dd className="text-xs text-ink-2">varied by ±{entry.spread_min} min</dd>
