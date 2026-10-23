@@ -75,6 +75,9 @@ def create_app(settings: Settings | None = None, *, start_scheduler: bool = True
         response: Response = await call_next(request)
         if request.url.path.startswith("/api/"):
             response.headers["Cache-Control"] = "no-store"
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("X-Frame-Options", "DENY")
+        response.headers.setdefault("Referrer-Policy", "same-origin")
         return response
 
     app.include_router(auth.router)

@@ -31,6 +31,8 @@ def cmd_serve(args: argparse.Namespace) -> None:
         port=args.port or settings.port,
         reload=args.reload,
         log_level="info",
+        proxy_headers=settings.trust_proxy,
+        forwarded_allow_ips="*" if settings.trust_proxy else None,
     )
 
 

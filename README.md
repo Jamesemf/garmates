@@ -71,21 +71,89 @@ network, open `http://<this-pc's-IP>:8000`. On Windows you may need to allow
 inbound TCP 8000 for *Private* networks in Windows Defender Firewall. Python will usually
 prompt for this the first time it runs.
 
-## Always-on: Docker on a Raspberry Pi or NAS
+## Always-on: Raspberry Pi (Docker)
 
-The image builds the React app and runs the server. It works on `amd64` (PC, most NAS
-boxes) and `arm64` (Raspberry Pi 4/5 with a 64-bit OS, ARM NAS boxes).
+Use a **Raspberry Pi 4 or 5 (2 GB+)** running **Raspberry Pi OS Lite, 64-bit**. Give it a
+fixed address with a DHCP reservation in your router. An SSD is kinder than an SD card for
+a database that's written every few hours, but either works.
 
-**Build directly on the device** (simplest). Clone the repo onto the Pi or NAS, then:
+**1. Install Docker on the Pi** (over SSH):
 
 ```bash
-TZ=Europe/London docker compose up -d --build
+curl -fsSL https://get.docker.com | sh
+```
+```bash
+sudo usermod -aG docker $USER
 ```
 
-Open `http://<device-ip>:8000`. The container restarts automatically. All data lives in the
-`dashboard-data` volume.
+Log out and back in so the group change applies.
 
-**Or build on your PC and copy the image across**, which is faster than building on a Pi:
+**2. Copy the code across.** From this repo on your PC, make a clean archive without
+`node_modules`, `data` or `.git`, then copy it to the Pi:
+
+```bash
+git archive -o garmin-dashboard.tar.gz HEAD
+```
+```bash
+scp garmin-dashboard.tar.gz pi@raspberrypi.local:~
+```
+
+On the Pi:
+
+```bash
+mkdir -p ~/garmin-dashboard && tar xzf ~/garmin-dashboard.tar.gz -C ~/garmin-dashboard
+```
+
+**3. Configure.** In `~/garmin-dashboard`, create `.env`:
+
+```bash
+TZ=Europe/London
+# Every name/address you'll use in the browser, comma-separated:
+DASHBOARD_HOSTS=raspberrypi.local, 192.168.1.50
+# HTTPS via Caddy (recommended) - remove this line for plain HTTP on port 8000:
+COMPOSE_FILE=compose.yaml:compose.https.yaml
+```
+
+**4. Start it.** The first build takes a few minutes on a Pi 4:
+
+```bash
+docker compose up -d --build
+```
+
+Then open `https://raspberrypi.local`, or the IP you listed. Containers restart
+automatically after reboots. Update later by copying a new archive across and re-running
+`docker compose up -d --build`.
+
+### HTTPS on the home network
+
+With `compose.https.yaml`, Caddy serves the dashboard over HTTPS using its own private
+certificate authority (CA). Plain HTTP only redirects, and the app's port 8000 is no longer
+exposed. Browsers will warn until each device trusts that CA. You do this once per device:
+
+1. On the device, open `http://raspberrypi.local/household-health-ca.crt` (or use the IP)
+   to download the root certificate.
+2. Trust it:
+   - **iPhone/iPad:** Settings → *Profile Downloaded* → Install. Then Settings → General →
+     About → Certificate Trust Settings → turn on full trust for it.
+   - **Android:** Settings → Security → *Encryption & credentials* → Install a certificate
+     → CA certificate → pick the file. Menu names vary by brand.
+   - **Windows:** double-click the file → Install Certificate → Local Machine → *Trusted
+     Root Certification Authorities*.
+   - **macOS:** open it in Keychain Access, add it to *System*, then set it to *Always
+     Trust*.
+3. Reload `https://…`. The padlock should show with no warning.
+
+The CA lives in the `caddy-data` volume. Keep it, or every device has to trust a new one.
+If you'd rather not install a certificate anywhere, and you own a domain, Caddy can get a
+publicly trusted certificate through a DNS challenge instead. Ask and I'll set it up.
+
+`.local` names rely on mDNS, which some Android versions don't resolve. Use the IP address
+there, and include it in `DASHBOARD_HOSTS`.
+
+### Building on your PC instead
+
+Building on the PC is faster, especially on a Pi with 2 GB or less. Build an ARM64 image
+and copy it across:
 
 ```bash
 docker buildx build --platform linux/arm64 -t garmin-dashboard:latest -o type=docker,dest=garmin-dashboard-arm64.tar .
@@ -94,10 +162,12 @@ docker buildx build --platform linux/arm64 -t garmin-dashboard:latest -o type=do
 docker load -i garmin-dashboard-arm64.tar
 ```
 
-The second command runs on the Pi. Then `docker compose up -d` there, without `--build`.
+Run `docker load` on the Pi, then `docker compose up -d` there, without `--build`.
 
-**Moving existing data from this PC into the container.** With the container created,
-copy the `data/` folder contents (including `secrets/master.key`) into the volume:
+### Moving data from this PC to the Pi
+
+With the containers created, copy the `data/` folder contents (including
+`secrets/master.key`) into the volume:
 
 ```bash
 docker compose cp ./data/. dashboard:/data
@@ -112,13 +182,11 @@ docker compose restart
 `docker cp` writes files as root and the app runs as an unprivileged user, so the `chown`
 step is needed.
 
-**Backing up the volume:**
+### Backing up the volume
 
 ```bash
 docker run --rm -v garmin-dashboard_dashboard-data:/data -v "$PWD":/backup alpine tar czf /backup/dashboard-backup.tgz -C /data .
 ```
-
-Set `TZ` to your time zone. "Today" for syncing and the Day view follows it.
 
 ## How it works
 

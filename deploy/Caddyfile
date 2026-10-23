@@ -1,0 +1,26 @@
+# HTTPS for the home network using Caddy's own local certificate authority.
+# DASHBOARD_HOSTS: every name/address you'll type in the browser, comma-separated,
+# e.g. "raspberrypi.local, 192.168.1.50" (set it in .env).
+{
+	# Issue certificates from Caddy's private CA instead of a public one.
+	local_certs
+}
+
+{$DASHBOARD_HOSTS:raspberrypi.local} {
+	encode zstd gzip
+	reverse_proxy dashboard:8000
+}
+
+# Plain HTTP only serves the root certificate (so devices can trust the CA once)
+# and redirects everything else to HTTPS.
+http:// {
+	handle /household-health-ca.crt {
+		root * /data/caddy/pki/authorities/local
+		rewrite * /root.crt
+		header Content-Type application/x-x509-ca-cert
+		file_server
+	}
+	handle {
+		redir https://{host}{uri} permanent
+	}
+}

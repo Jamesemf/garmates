@@ -121,3 +121,10 @@ def test_people_without_synced_data_get_no_zero_filled_workouts(client, admin):
         "/api/series", params={"people": admin["id"], "metrics": "workouts,workout_hours"}
     ).json()
     assert series["people"][str(admin["id"])]["points"] == []
+
+
+def test_security_headers(client):
+    response = client.get("/api/auth/state")
+    assert response.headers["X-Content-Type-Options"] == "nosniff"
+    assert response.headers["X-Frame-Options"] == "DENY"
+    assert response.headers["Cache-Control"] == "no-store"

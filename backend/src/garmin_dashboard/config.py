@@ -33,6 +33,9 @@ class Settings(BaseSettings):
     session_days: int = 30
     # Set true only when serving over HTTPS (e.g. behind a reverse proxy).
     secure_cookies: bool = False
+    # Behind a reverse proxy (Caddy): honour X-Forwarded-For/-Proto so login rate limiting
+    # sees each device's address. Only enable when the app isn't reachable directly.
+    trust_proxy: bool = False
 
     @property
     def database_url(self) -> str:

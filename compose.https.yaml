@@ -1,0 +1,35 @@
+# HTTPS overlay: Caddy terminates TLS with a private CA; the app is no longer exposed directly.
+# Enable it by adding this line to .env next to compose.yaml:
+#   COMPOSE_FILE=compose.yaml:compose.https.yaml
+# then run: docker compose up -d --build
+
+services:
+  dashboard:
+    # Only reachable through Caddy now.
+    ports: !reset []
+    expose:
+      - "8000"
+    environment:
+      GD_SECURE_COOKIES: "true"
+      GD_TRUST_PROXY: "true"
+
+  caddy:
+    image: caddy:2
+    container_name: garmin-dashboard-caddy
+    restart: unless-stopped
+    depends_on:
+      - dashboard
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DASHBOARD_HOSTS: ${DASHBOARD_HOSTS:-raspberrypi.local}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      # Holds Caddy's private CA - keep it, or every device must re-trust a new one.
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  caddy-data:
+  caddy-config:
