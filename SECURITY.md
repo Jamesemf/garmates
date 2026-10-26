@@ -45,7 +45,9 @@ What it doesn't try to do:
 
 - **Survive exposure to the internet.** Don't port-forward 8000 (or 80/443) on your router.
   For access away from home, use a VPN into your network instead, such as
-  [Tailscale](https://tailscale.com) or [WireGuard](https://www.wireguard.com).
+  [Tailscale](https://tailscale.com) or [WireGuard](https://www.wireguard.com). The one
+  exception is **demo mode** (`GARMATES_DEMO_MODE=true`). It holds only synthetic data, refuses
+  every write, and won't start if real people exist, so it is designed to be public.
 - **Protect against someone with access to the host.** Anyone who can read the `data/` folder or
   the Docker volume can read the database and decrypt the stored keys. Restrict access to the
   machine and keep backups somewhere private.

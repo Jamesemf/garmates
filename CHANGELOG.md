@@ -6,6 +6,15 @@ All notable changes to Garmates are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- **Demo mode** (`GARMATES_DEMO_MODE=true`) for hosting a public, read-only showcase:
+  - Visitors see two synthetic profiles without signing in.
+  - Every change is refused.
+  - The data is regenerated daily.
+  - It refuses to start on a data directory that contains real people.
+- An animated tour at the top of the README.
+
 ## [0.1.0] - 2026-10-26
 
 First public release.

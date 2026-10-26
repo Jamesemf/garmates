@@ -87,15 +87,17 @@ def _record_failure(client: str) -> None:
 
 @router.get("/state")
 def auth_state(request: Request, db: DB) -> dict:
+    demo_mode = get_settings().demo_mode
     me = None
     token = request.cookies.get(SESSION_COOKIE)
-    if token:
+    if token or demo_mode:
         try:
             me = current_person(db, token)
         except HTTPException:
             me = None
     return {
-        "setup_required": _setup_required(db),
+        "setup_required": not demo_mode and _setup_required(db),
+        "demo_mode": demo_mode,
         "me": person_out(db, me, me) if me else None,
     }
 

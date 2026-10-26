@@ -26,7 +26,7 @@ import type {
 export function useAuthState() {
   return useQuery({
     queryKey: ['auth'],
-    queryFn: () => api.get<{ setup_required: boolean; me: Person | null }>('/api/auth/state'),
+    queryFn: () => api.get<{ setup_required: boolean; demo_mode?: boolean; me: Person | null }>('/api/auth/state'),
     staleTime: 60_000,
   })
 }

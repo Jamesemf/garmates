@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import datetime as dt
 import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -22,6 +23,10 @@ from .models import GarminCredential
 
 _LOGGER = logging.getLogger(__name__)
 _UNSAFE_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
+DEMO_READ_ONLY = (
+    "This is a read-only demo with synthetic data. Install Garmates to connect your own "
+    "Garmin account."
+)
 
 
 async def _scheduler(interval_minutes: int) -> None:
@@ -44,6 +49,22 @@ async def _scheduler(interval_minutes: int) -> None:
         await asyncio.sleep(interval_minutes * 60)
 
 
+async def _refresh_demo() -> None:
+    """Regenerate the demo profiles after midnight so their data always runs up to today."""
+    from .demo import seed_demo
+
+    seeded = dt.date.today()
+    while True:
+        await asyncio.sleep(3600)
+        if dt.date.today() == seeded:
+            continue
+        try:
+            await asyncio.to_thread(seed_demo)
+            seeded = dt.date.today()
+        except Exception:
+            _LOGGER.exception("Refreshing the demo data failed")
+
+
 def create_app(settings: Settings | None = None, *, start_scheduler: bool = True) -> FastAPI:
     settings = settings or get_settings()
     settings.ensure_dirs()
@@ -52,7 +73,13 @@ def create_app(settings: Settings | None = None, *, start_scheduler: bool = True
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         task = None
-        if start_scheduler and settings.sync_interval_minutes > 0:
+        if settings.demo_mode:
+            from .demo import prepare_demo_mode
+
+            prepare_demo_mode()
+            if start_scheduler:
+                task = asyncio.create_task(_refresh_demo())
+        elif start_scheduler and settings.sync_interval_minutes > 0:
             task = asyncio.create_task(_scheduler(settings.sync_interval_minutes))
         yield
         if task:
@@ -66,12 +93,11 @@ def create_app(settings: Settings | None = None, *, start_scheduler: bool = True
 
     @app.middleware("http")
     async def csrf_guard(request: Request, call_next):  # noqa: ANN001, ANN202
-        if (
-            request.method in _UNSAFE_METHODS
-            and request.url.path.startswith("/api/")
-            and request.headers.get(CSRF_HEADER) != "1"
-        ):
-            return JSONResponse({"detail": "Missing request header"}, status_code=403)
+        if request.method in _UNSAFE_METHODS and request.url.path.startswith("/api/"):
+            if request.headers.get(CSRF_HEADER) != "1":
+                return JSONResponse({"detail": "Missing request header"}, status_code=403)
+            if settings.demo_mode:
+                return JSONResponse({"detail": DEMO_READ_ONLY}, status_code=403)
         response: Response = await call_next(request)
         if request.url.path.startswith("/api/"):
             response.headers["Cache-Control"] = "no-store"

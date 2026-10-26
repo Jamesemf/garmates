@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, NavLink, Outlet, useLocation } from 'react-router'
 import { api } from '../lib/api'
-import { usePeople } from '../lib/hooks'
+import { useAuthState, usePeople } from '../lib/hooks'
 import { useTheme, type ThemeChoice } from '../lib/theme'
 import type { Person } from '../lib/types'
 import { cx, StatusBadge } from './ui'
@@ -71,10 +71,23 @@ function KeyBanner({ people }: { people: Person[] }) {
   )
 }
 
+function DemoBanner() {
+  return (
+    <div className="mb-4 flex flex-wrap items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink-2">
+      <StatusBadge status="neutral">Demo</StatusBadge>
+      <span>A read-only tour with two synthetic people. Nothing here is real, and nothing can be changed.</span>
+      <a href="https://github.com/Jamesemf/garmates#quick-start" className="font-medium text-ink underline underline-offset-2">
+        Run it with your own Garmin data
+      </a>
+    </div>
+  )
+}
+
 export function Layout({ me }: { me: Person }) {
   const location = useLocation()
   const client = useQueryClient()
   const { data: people = [] } = usePeople()
+  const demo = useAuthState().data?.demo_mode ?? false
 
   const signOut = async () => {
     await api.post('/api/auth/logout')
@@ -111,10 +124,12 @@ export function Layout({ me }: { me: Person }) {
         <div className="mt-auto space-y-3 px-3 text-xs text-ink-2">
           <ThemePicker />
           <div className="flex items-center justify-between gap-2">
-            <span className="truncate">Signed in as {me.name}</span>
-            <button type="button" onClick={signOut} className="font-medium text-ink hover:underline">
-              Sign out
-            </button>
+            <span className="truncate">{demo ? 'Viewing as' : 'Signed in as'} {me.name}</span>
+            {!demo && (
+              <button type="button" onClick={signOut} className="font-medium text-ink hover:underline">
+                Sign out
+              </button>
+            )}
           </div>
         </div>
       </aside>
@@ -127,9 +142,11 @@ export function Layout({ me }: { me: Person }) {
             </Link>
             <div className="flex items-center gap-3">
               <ThemePicker />
-              <button type="button" onClick={signOut} className="text-xs font-medium text-ink">
-                Sign out
-              </button>
+              {!demo && (
+                <button type="button" onClick={signOut} className="text-xs font-medium text-ink">
+                  Sign out
+                </button>
+              )}
             </div>
           </div>
           <nav aria-label="Main" className="flex gap-1 overflow-x-auto px-3 py-2">
@@ -137,7 +154,7 @@ export function Layout({ me }: { me: Person }) {
           </nav>
         </header>
         <main className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
-          <KeyBanner people={people} />
+          {demo ? <DemoBanner /> : <KeyBanner people={people} />}
           <Outlet />
         </main>
       </div>

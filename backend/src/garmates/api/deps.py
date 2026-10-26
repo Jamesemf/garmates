@@ -9,6 +9,7 @@ from fastapi import Cookie, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from ..config import get_settings
 from ..db import get_db
 from ..models import CATEGORIES, AuthSession, Person, utcnow
 from ..security import hash_token
@@ -21,9 +22,23 @@ CSRF_HEADER = "X-Garmates-Request"
 DB = Annotated[Session, Depends(get_db)]
 
 
+def demo_viewer(db: Session) -> Person:
+    """In demo mode every visitor is the first demo profile, so no sessions are stored."""
+    person = db.scalar(
+        select(Person).where(Person.is_demo.is_(True)).order_by(Person.id).limit(1)
+    )
+    if person is None:
+        raise HTTPException(
+            status.HTTP_503_SERVICE_UNAVAILABLE, "The demo is being set up - try again shortly"
+        )
+    return person
+
+
 def current_person(
     db: DB, garmates_session: Annotated[str | None, Cookie()] = None
 ) -> Person:
+    if get_settings().demo_mode:
+        return demo_viewer(db)
     if not garmates_session:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Not signed in")
     session = db.get(AuthSession, hash_token(garmates_session))
