@@ -92,7 +92,7 @@ function Household({ people, digest }: { people: Person[]; digest: Record<string
     <p className="mb-4 rounded-xl border border-line bg-surface px-4 py-3 text-sm text-ink-2">
       <span className="font-medium text-ink">Together this week:</span>{' '}
       {formatNumber(workouts)} workout{workouts === 1 ? '' : 's'} ({formatNumber(hours, 1)} h) and {formatNumber(steps)} steps
-      {steps ? ` - about ${units.distance(steps * 0.78)} on foot` : ''}.
+      {steps ? ` - about ${formatNumber(units.distanceValue(steps * 0.78))} ${units.distanceUnit} on foot` : ''}.
     </p>
   )
 }
