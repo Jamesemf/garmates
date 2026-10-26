@@ -1,295 +1,222 @@
-# Household Health – a Garmin dashboard for more than one person
+<div align="center">
 
-A self-hosted dashboard built on Garmin's **Connect Personal API** (launched October 2026).
-Everyone in the household connects their own Garmin account. You can then compare sleep,
-recovery, daily activity, workouts and body metrics side by side, either as raw values
-or against each person's own baseline.
+<img src="docs/images/logo.svg" alt="" width="84" height="84">
 
-- **Backend:** FastAPI + SQLite, using Garmin's official
-  [`garmin-connect-personal-api-python`](https://github.com/garmin/connect-personal-api-python)
-  client.
-- **Frontend:** React + TypeScript (Vite), Recharts, Leaflet/OpenStreetMap and Tailwind.
-- **Runs on:** a single PC on your home network. Other devices on the network open it in
-  a browser.
+# Garmates
+
+**Your Garmin stats, side by side with the people you live with.**
+
+A self-hosted dashboard for couples, families and housemates. It uses Garmin's official
+Personal API, runs on your own PC or Raspberry Pi, and keeps everyone's data at home.
+
+[![CI](https://github.com/Jamesemf/garmates/actions/workflows/ci.yml/badge.svg)](https://github.com/Jamesemf/garmates/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/Jamesemf/garmates?sort=semver)](https://github.com/Jamesemf/garmates/releases)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-3776ab)](backend/pyproject.toml)
+[![Docker: amd64 | arm64](https://img.shields.io/badge/docker-amd64%20%7C%20arm64-2496ed)](https://github.com/Jamesemf/garmates/pkgs/container/garmates)
+
+[Quick start](#quick-start) · [Screenshots](#screenshots) · [Install guide](docs/installation.md) · [Extending](docs/extending.md) · [Contributing](CONTRIBUTING.md)
+
+<sub>An independent open-source project, not affiliated with or endorsed by Garmin.</sub>
+
+</div>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/overview-dark.png">
+  <img src="docs/images/overview-light.png" alt="Garmates overview: two people's last 7 days of sleep score, HRV, resting heart rate, steps and training load, each compared with their own usual">
+</picture>
+
+## Why Garmates
+
+Garmin Connect is built for one person. Garmates is built for the household: did we both
+sleep worse this week? Who's ahead in this month's step challenge? Does my HRV drop after late
+nights the way yours does?
+
+- **Made for two or more.** Everyone connects their own Garmin account, then you compare sleep,
+  recovery, activity, workouts and body metrics side by side. Use raw values, or each person
+  against their own usual, so different baselines still make a fair comparison.
+- **Official API, your own key.** Garmates uses Garmin's
+  [Personal API](docs/garmin-personal-api.md) and its official client. Nobody shares a password,
+  and there's no scraping or unofficial endpoints that break overnight.
+- **Private by design.** It runs on a machine in your home and stores data in a local SQLite file.
+  There's no cloud and no telemetry. Each person chooses which categories the others can see, and
+  the server enforces it. Keys are encrypted at rest.
+- **Insights you can trust.** The weekly digest compares each person's week with their previous
+  four. Patterns ("you sleep better after workout days") only appear with enough nights and a
+  clear effect size, and they're worded as associations, never as medical advice.
+- **Runs anywhere.** Prebuilt Docker images for amd64 and arm64 cover a PC, a NAS or a Raspberry
+  Pi 4/5. There's optional HTTPS for the home network, and a one-command start on Windows.
 
 ## What's in it
 
 | Page | What it shows |
 |---|---|
-| **Overview** | Each person's last 7/14/30 days vs their own usual, with sparklines and recent workouts |
-| **Weekly digest** | The week vs the previous four, highlights, goal results, and 90-day patterns |
-| **Sleep & recovery** | Sleep score/duration/stages, HRV, resting HR, Body Battery, stress, bedtime and wake time |
+| **Overview** | Each person's last 7, 14 or 30 days against their own usual, with sparklines |
+| **Weekly digest** | The week against the previous four, highlights, goal results, and patterns in your own data |
+| **Sleep & recovery** | Sleep score, duration and stages, overnight HRV, resting HR, Body Battery, stress, bedtime and wake time |
 | **Daily activity** | Steps, intensity minutes, calories, distance, floors |
-| **Workouts** | Volume by sport, VO2 max, acute/chronic load, HR zones, activity list and detail with maps |
-| **Body & health** | Weight, body fat, SpO2, respiration, hydration, fitness age |
-| **Compare** | Head-to-head table (raw or vs own usual), and any metric indexed to each person's baseline |
-| **Goals & challenges** | Personal targets with streaks, and challenges scored by total, average or improvement |
+| **Workouts** | Volume by sport, HR zones, estimated acute/chronic load, and activity pages with GPS maps and HR/pace charts |
+| **Body & health** | Weight, body fat, BMI, Pulse Ox, respiration, hydration, fitness age |
+| **Compare** | A head-to-head table, and any metric indexed to each person's baseline |
+| **Goals & challenges** | Personal targets with streaks, and household challenges scored by total, average or improvement |
 | **Day view** | One date side by side: sleep windows, intraday heart rate and Body Battery |
-| **People & keys** | Garmin keys, sync status, sharing, display units, logins |
+| **People & keys** | Garmin keys and expiry warnings, sync status, sharing, logins, and units (km/mi, kg/lb/st, 12/24 h) |
 
-Display preferences are per viewer: distance, weight (kg/lb/stone), hydration, elevation,
-week start and 12/24-hour clock. They default to each person's Garmin profile.
+## Screenshots
 
-The **patterns** on the digest page are associations in each person's own data, such as
-sleep after workout days, late nights vs HRV, and bedtime vs sleep score. They only appear
-with enough nights (≥8 per group, or ≥21 paired days) and a clear effect size.
+<table>
+  <tr>
+    <td width="50%"><img src="docs/images/digest.png" alt="Weekly digest with per-person highlights, goal results and changes on usual"><br><sub><b>Weekly digest:</b> the week against your usual, highlights and goals</sub></td>
+    <td width="50%"><img src="docs/images/compare.png" alt="Compare page with HRV indexed to each person's baseline and a head-to-head table"><br><sub><b>Compare:</b> any metric indexed to each person's own baseline</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/images/sleep.png" alt="Sleep and recovery charts for two people over 90 days"><br><sub><b>Sleep & recovery:</b> scores, HRV and resting HR over time</sub></td>
+    <td><img src="docs/images/activity.png" alt="A run with its route on an OpenStreetMap map, heart rate and pace charts"><br><sub><b>Workouts:</b> routes, heart rate and pace from the original FIT file</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/images/goals.png" alt="Goals with streaks and a step challenge leaderboard"><br><sub><b>Goals & challenges:</b> streaks and a friendly leaderboard</sub></td>
+    <td><img src="docs/images/day.png" alt="Day view with both people's sleep windows, intraday heart rate and Body Battery"><br><sub><b>Day view:</b> one day, side by side</sub></td>
+  </tr>
+</table>
 
-## Quick start (Windows, miniconda)
+<p align="center"><img src="docs/images/mobile.png" alt="Garmates overview on a phone" width="260"><br><sub>Works on your phone too. Everyone opens it from their own device.</sub></p>
 
-Create the environment once:
+<sub>All screenshots use the built-in synthetic demo profiles.</sub>
 
-```bash
-conda env create -f environment.yml
-```
+## Quick start
 
-Then start the dashboard from the repo folder, in PowerShell or cmd:
-
-```bash
-.\start.cmd
-```
-
-`start.cmd` builds the web app on first run and starts the server through `conda run`, so
-it doesn't need `conda activate`. That matters because Windows blocks PowerShell profile
-scripts by default, which is why `conda activate` reports *"Run 'conda init'"* even after
-you've run it.
-
-If you'd rather have `conda activate` work in PowerShell, allow local scripts for your
-user once, then open a new terminal:
+You need [Docker](https://docs.docker.com/get-docker/). This works on Windows, macOS, Linux and a
+Raspberry Pi.
 
 ```bash
-Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+git clone https://github.com/Jamesemf/garmates.git
+cd garmates
 ```
 
-Open <http://localhost:8000>. Create the first account (it becomes the admin), then go to
-**People & keys**:
+Create a `.env` file in that folder containing your time zone, e.g. `TZ=Europe/London`, so
+"today" means your local day. It defaults to UTC. Then start it:
+
+```bash
+docker compose up -d
+```
+
+Open `http://<this-machine's-IP>:8000` and create the first account (it becomes the admin).
+Then:
 
 1. Create a Personal API key at
    [Garmin Connect → Settings → Personal API Token](https://connect.garmin.com/app/settings/personalApiToken).
-   Garmin shows the key only once.
-2. Paste the key into your card and pick the lifetime you chose. The key is checked with
-   Garmin, encrypted, and the first sync starts. Recent days appear within seconds and a
-   year of history fills in over the next few minutes.
-3. Add your partner under **Add someone** and give them a login. They sign in from their
-   own device, add their own key, and choose which categories to share.
+   Garmin shows it only once.
+2. On **People & keys**, paste it into your card. Recent days appear within seconds, and a year
+   of history fills in over the next few minutes.
+3. **Add someone**, give them a login, and they add their own key from their own device.
 
-Want to look around first? **Load demo profiles** creates two synthetic people with eight
-months of data.
-
-### Reaching it from other devices
-
-The server listens on all interfaces (port 8000). From a phone or laptop on the same
-network, open `http://<this-pc's-IP>:8000`. On Windows you may need to allow
-inbound TCP 8000 for *Private* networks in Windows Defender Firewall. Python will usually
-prompt for this the first time it runs.
-
-## Always-on: Raspberry Pi (Docker)
-
-Use a **Raspberry Pi 4 or 5 (2 GB+)** running **Raspberry Pi OS Lite, 64-bit**. Give it a
-fixed address with a DHCP reservation in your router. An SSD is kinder than an SD card for
-a database that's written every few hours, but either works.
-
-**1. Install Docker on the Pi** (over SSH):
+**Just looking?** You don't need a Garmin account. Run it with one command:
 
 ```bash
-curl -fsSL https://get.docker.com | sh
-```
-```bash
-sudo usermod -aG docker $USER
+docker run -d -p 8000:8000 -v garmates-data:/data ghcr.io/jamesemf/garmates
 ```
 
-Log out and back in so the group change applies.
+Create an account and press **Load demo profiles** for two synthetic people with eight months of
+data.
 
-**2. Copy the code across.** From this repo on your PC, make a clean archive without
-`node_modules`, `data` or `.git`, then copy it to the Pi:
+The [install guide](docs/installation.md) covers the rest:
 
-```bash
-git archive -o garmin-dashboard.tar.gz HEAD
-```
-```bash
-scp garmin-dashboard.tar.gz pi@raspberrypi.local:~
-```
-
-On the Pi:
-
-```bash
-mkdir -p ~/garmin-dashboard && tar xzf ~/garmin-dashboard.tar.gz -C ~/garmin-dashboard
-```
-
-**3. Configure.** In `~/garmin-dashboard`, create `.env`:
-
-```bash
-TZ=Europe/London
-# Every name/address you'll use in the browser, comma-separated:
-DASHBOARD_HOSTS=raspberrypi.local, 192.168.1.50
-# HTTPS via Caddy (recommended) - remove this line for plain HTTP on port 8000:
-COMPOSE_FILE=compose.yaml:compose.https.yaml
-```
-
-**4. Start it.** The first build takes a few minutes on a Pi 4:
-
-```bash
-docker compose up -d --build
-```
-
-Then open `https://raspberrypi.local`, or the IP you listed. Containers restart
-automatically after reboots. Update later by copying a new archive across and re-running
-`docker compose up -d --build`.
-
-### HTTPS on the home network
-
-With `compose.https.yaml`, Caddy serves the dashboard over HTTPS using its own private
-certificate authority (CA). Plain HTTP only redirects, and the app's port 8000 is no longer
-exposed. Browsers will warn until each device trusts that CA. You do this once per device:
-
-1. On the device, open `http://raspberrypi.local/household-health-ca.crt` (or use the IP)
-   to download the root certificate.
-2. Trust it:
-   - **iPhone/iPad:** Settings → *Profile Downloaded* → Install. Then Settings → General →
-     About → Certificate Trust Settings → turn on full trust for it.
-   - **Android:** Settings → Security → *Encryption & credentials* → Install a certificate
-     → CA certificate → pick the file. Menu names vary by brand.
-   - **Windows:** double-click the file → Install Certificate → Local Machine → *Trusted
-     Root Certification Authorities*.
-   - **macOS:** open it in Keychain Access, add it to *System*, then set it to *Always
-     Trust*.
-3. Reload `https://…`. The padlock should show with no warning.
-
-The CA lives in the `caddy-data` volume. Keep it, or every device has to trust a new one.
-If you'd rather not install a certificate anywhere, and you own a domain, Caddy can get a
-publicly trusted certificate through a DNS challenge instead. Ask and I'll set it up.
-
-Every address you open in the browser must be listed in `DASHBOARD_HOSTS`. Caddy only
-has certificates for those, so an unlisted IP fails the secure connection outright.
-`.local` names rely on mDNS, which some Android versions don't resolve. Use the IP address
-there, and include it in `DASHBOARD_HOSTS`.
-
-### Building on your PC instead
-
-Building on the PC is faster, especially on a Pi with 2 GB or less. Build an ARM64 image
-and copy it across:
-
-```bash
-docker buildx build --platform linux/arm64 -t garmin-dashboard:latest -o type=docker,dest=garmin-dashboard-arm64.tar .
-```
-```bash
-docker load -i garmin-dashboard-arm64.tar
-```
-
-Run `docker load` on the Pi, then `docker compose up -d` there, without `--build`.
-
-### Moving data from this PC to the Pi
-
-With the containers created, copy the `data/` folder contents (including
-`secrets/master.key`) into the volume:
-
-```bash
-docker compose cp ./data/. dashboard:/data
-```
-```bash
-docker compose exec --user root dashboard chown -R dashboard:dashboard /data
-```
-```bash
-docker compose restart
-```
-
-`docker cp` writes files as root and the app runs as an unprivileged user, so the `chown`
-step is needed.
-
-### Backing up the volume
-
-```bash
-docker run --rm -v garmin-dashboard_dashboard-data:/data -v "$PWD":/backup alpine tar czf /backup/dashboard-backup.tgz -C /data .
-```
+- a Raspberry Pi set up with HTTPS
+- Windows without Docker (`start.cmd`)
+- macOS or Linux from source
+- updates, backups, and moving to a Pi
 
 ## How it works
 
 ```
-Garmin Personal API ──(per-person key → 24h bearer token)──► sync engine ──► SQLite
-                                                                  │   raw JSON kept verbatim
-                                                                  ▼
-                                    React app ◄── FastAPI (/api/…) ◄── normalised tables
+Garmin Personal API ──(per-person key → 24h token)──► sync engine ──► SQLite
+                                                          │   raw JSON kept verbatim
+                                                          ▼
+                            React app ◄── FastAPI (/api/…) ◄── normalised tables
 ```
 
-- **Sync:** runs every 3 hours, plus a *Sync now* button. It works in chunks that respect
-  Garmin's per-request date limits (daily summaries 1 year, sleep/HRV 31 days, …) and
-  halves a chunk if Garmin still refuses it. It fetches recent days first, then fills in
-  older history newest-first, and can resume if interrupted. The last 3 days are
-  re-fetched on every run because Garmin keeps revising them.
-- **Raw payloads are stored**, so if a parser needs fixing, `garmin-dashboard reparse`
-  rebuilds every table without calling Garmin again.
-- **On-demand detail:** activity GPS/HR streams come from each activity's original FIT file,
-  and intraday heart rate and Body Battery feed the Day view. Both are fetched the first
-  time you open them and cached afterwards.
-- **Privacy:** each person chooses which categories (sleep & recovery, daily activity,
-  workouts, body) other household members can see. The API enforces this; admins included.
-  Garmin keys are encrypted at rest (Fernet; key in `data/secrets/master.key`). Passwords
-  use Argon2. Sessions are HttpOnly cookies, and state-changing requests require a custom
-  header (CSRF guard).
+The pieces:
 
-### What the Personal API doesn't provide (yet)
+- **Sync:** every 3 hours, plus *Sync now*. It respects Garmin's per-request date limits, shows
+  recent days first, then backfills history and resumes if interrupted.
+- **Raw payloads:** every Garmin response is stored verbatim, so a parser fix plus
+  `garmates reparse` corrects your whole history without calling Garmin again.
+- **One process:** FastAPI, SQLite and the built React app (Recharts, Leaflet/OpenStreetMap,
+  Tailwind) run together. It's light enough for a Pi.
 
-Training readiness, training status and Garmin's acute/chronic load aren't available. The
-Workouts page approximates acute/chronic load from each activity's training load. VO2 max
-comes from the value Garmin attaches to each activity.
+More detail is in [docs/architecture.md](docs/architecture.md).
 
-## Commands
+<details>
+<summary><b>Commands</b></summary>
 
 | Command | What it does |
 |---|---|
-| `garmin-dashboard serve [--host H] [--port P] [--reload]` | Run the dashboard |
-| `garmin-dashboard sync [--person ID]` | Sync now, in the foreground |
-| `garmin-dashboard reparse` | Rebuild tables from stored Garmin responses |
-| `garmin-dashboard verify [--person ID]` | Data-quality report: coverage, gaps, out-of-range values, raw formats Garmin sent |
-| `garmin-dashboard demo [--remove]` | Add/remove the synthetic demo profiles |
-| `garmin-dashboard reset-password USERNAME` | Recover a locked-out account |
-| `garmin-dashboard --data-dir PATH …` | Use a different data directory |
+| `garmates serve [--host H] [--port P] [--reload]` | Run the dashboard |
+| `garmates sync [--person ID]` | Sync now, in the foreground |
+| `garmates reparse [--person ID]` | Rebuild tables from stored Garmin responses |
+| `garmates verify [--person ID]` | Data-quality report: coverage, gaps, out-of-range values, raw formats |
+| `garmates demo [--remove]` | Add or remove the synthetic demo profiles |
+| `garmates reset-password USERNAME` | Recover a locked-out account |
+| `garmates --data-dir PATH …` | Use a different data directory |
 
-Settings come from environment variables or `.env` (see `.env.example`).
+In Docker, prefix them with `docker compose exec dashboard`. Settings are environment variables
+or `.env`; see [docs/configuration.md](docs/configuration.md).
 
-## Development
+</details>
 
-```bash
-garmin-dashboard serve --reload
-```
-```bash
-cd frontend && npm run dev
-```
+## Extending it
 
-The Vite dev server (port 5173) proxies `/api` to FastAPI on port 8000.
+Garmates is meant to be easy to build on:
 
-```bash
-cd backend && python -m pytest
-```
-```bash
-cd backend && ruff check src tests
-```
-```bash
-python scripts/extract_openapi_spec.py
-```
+- **A new chart or comparison** is often a single catalog entry. Every metric is defined once in
+  `catalog.py` and shows up in Compare, Goals and Challenges automatically.
+- **A new Garmin dataset** gets chunked sync, backfill, raw storage and resume from one
+  `RangeDataset` entry.
+- **A local JSON API** with interactive docs is at `/api/docs`, which is handy for Home
+  Assistant or your own scripts.
 
-The last command downloads Garmin's current OpenAPI spec (embedded in their docs page) to
-`docs/`. Use it to check the parsers when Garmin changes the API.
+[docs/extending.md](docs/extending.md) has step-by-step recipes for metrics, Garmin fields,
+datasets, pages and insights.
 
-### Layout
+## Roadmap
 
-```
-backend/src/garmin_dashboard/
-  garmin/connector.py   per-person API access: token cache, pacing, retries, typed errors
-  garmin/sync.py        chunked catch-up + backfill, raw storage, upserts, background runner
-  garmin/parsers.py     Garmin JSON → table rows (forgiving of gaps and sentinel values)
-  garmin/detail.py      FIT decoding and intraday day views (on demand, cached)
-  analytics.py          series, roll-ups, baseline comparisons, training load
-  catalog.py            every metric's label, unit, category and "better" direction
-  api/                  auth, people/keys/sharing, data endpoints
-  demo.py               synthetic profiles in Garmin's own JSON shapes
-frontend/src/
-  pages/                Overview, Sleep, Activity, Workouts, Body, Compare, Day, People
-  components/charts.tsx shared chart kit (crosshair tooltips, legends, table views)
-  lib/theme.tsx         validated colour palette (light + dark)
-```
+Ideas that would make good contributions:
 
-## Backups
+- A banner when someone's watch hasn't synced for a while, and scheduled backups
+- Strength-training analysis (sets, volume and muscle groups from FIT files)
+- Day tags (travel, illness, alcohol) and their effect on sleep and HRV
+- A DIY readiness score, since the Personal API doesn't provide Garmin's
+- An installable PWA, and code-splitting for faster first loads
+- More Garmin datasets: weight goals, wellness activity summaries, and opt-in cycle tracking
+- A Home Assistant integration
 
-Copy the whole `data/` folder while the server is stopped. You need both the database and
-`secrets/master.key`; without the key, stored Garmin keys can't be decrypted and would
-have to be re-entered.
+See [open issues](https://github.com/Jamesemf/garmates/issues) or start a
+[discussion](https://github.com/Jamesemf/garmates/discussions).
+
+## Contributing
+
+Bug reports, data quirks, ideas and pull requests are all welcome. [CONTRIBUTING.md](CONTRIBUTING.md)
+gets you set up in a few minutes with demo data, no Garmin key needed. Please follow the
+[Code of Conduct](CODE_OF_CONDUCT.md), and report security issues privately as described in
+[SECURITY.md](SECURITY.md).
+
+## Acknowledgements
+
+Garmates is built on Garmin's official
+[`garmin-connect-personal-api-python`](https://github.com/garmin/connect-personal-api-python)
+client, [FastAPI](https://fastapi.tiangolo.com), [SQLAlchemy](https://www.sqlalchemy.org),
+[fitdecode](https://github.com/polyvertex/fitdecode), [React](https://react.dev),
+[Recharts](https://recharts.org), [Leaflet](https://leafletjs.com) with
+[OpenStreetMap](https://www.openstreetmap.org/copyright) tiles, [Tailwind CSS](https://tailwindcss.com)
+and [Caddy](https://caddyserver.com).
+
+## License and disclaimer
+
+[MIT](LICENSE) © 2026 James Ford.
+
+Garmates is an independent project. It is not affiliated with, endorsed by or sponsored by
+Garmin Ltd. or its subsidiaries. Garmin and Garmin Connect are trademarks of Garmin Ltd. or its
+subsidiaries. Each user connects their own account under Garmin's terms.
+
+Garmates is not a medical device. It shows your own data for information only, and its insights
+are associations, not diagnoses or advice.
