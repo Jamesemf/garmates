@@ -1,0 +1,43 @@
+name: Garmin data looks wrong
+description: Missing days, odd values, or a metric that doesn't match Garmin Connect.
+labels: ["garmin-data"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Garmin's Personal API is new and doesn't always send what its documentation says, for
+        example weight in grams rather than kilograms. Reports like this are how the parsers get
+        fixed.
+
+        **Privacy:** this issue is public. Don't paste raw payloads with names, GPS coordinates or
+        IDs, and never paste your API key. The `verify` report below is what's needed most. It
+        holds counts, date ranges, value ranges, a few example values and the person's display
+        name (replace that with anything you like), but no GPS, IDs or keys.
+  - type: textarea
+    id: what
+    attributes:
+      label: What looks wrong?
+      description: Which page and metric, which dates, what Garmates shows and what Garmin Connect shows.
+    validations:
+      required: true
+  - type: textarea
+    id: verify
+    attributes:
+      label: Output of `garmates verify`
+      description: |
+        Docker: `docker compose exec dashboard garmates verify`
+        From source: `garmates verify` (add `--person ID` for one person)
+        Check it before posting and remove anything you'd rather keep private.
+      render: json
+  - type: input
+    id: device
+    attributes:
+      label: Garmin device
+      placeholder: e.g. Forerunner 265, Venu 3, Index S2 scale
+  - type: input
+    id: version
+    attributes:
+      label: Garmates version
+      placeholder: e.g. 0.1.0
+    validations:
+      required: true

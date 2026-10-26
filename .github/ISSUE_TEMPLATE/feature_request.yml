@@ -1,0 +1,32 @@
+name: Feature request
+description: An idea for something Garmates should do.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What would you like to do?
+      description: The question you want answered or the job you want done, e.g. "see whether our sleep gets worse after late workouts".
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: How might it work?
+      description: Sketches, pages it would live on, or apps that do it well.
+  - type: dropdown
+    id: data
+    attributes:
+      label: Does it need data the Personal API provides?
+      description: Some Garmin metrics (training readiness, training status, VO2 max) aren't in the Personal API yet. See docs/garmin-personal-api.md.
+      options:
+        - "Yes, Garmates already syncs it"
+        - "Yes, but Garmates doesn't sync it yet"
+        - "Not sure"
+        - "No, it's not data-related"
+  - type: checkboxes
+    id: help
+    attributes:
+      label: Contributing
+      options:
+        - label: I'd like to help build this
