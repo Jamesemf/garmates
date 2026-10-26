@@ -11,14 +11,19 @@ RUN npm run build
 # --- Runtime: small Python image for the target architecture (amd64 PC/NAS, arm64 Pi) ---
 FROM python:3.12-slim AS runtime
 
+LABEL org.opencontainers.image.title="Garmates" \
+      org.opencontainers.image.description="Self-hosted dashboard that puts your household's Garmin data side by side" \
+      org.opencontainers.image.source="https://github.com/Jamesemf/garmates" \
+      org.opencontainers.image.licenses="MIT"
+
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    GD_DATA_DIR=/data \
-    GD_FRONTEND_DIST=/app/frontend/dist \
-    GD_HOST=0.0.0.0 \
-    GD_PORT=8000
+    GARMATES_DATA_DIR=/data \
+    GARMATES_FRONTEND_DIST=/app/frontend/dist \
+    GARMATES_HOST=0.0.0.0 \
+    GARMATES_PORT=8000
 
 # tzdata so TZ works: "today" for syncing and day views must be your local day, not UTC's.
 RUN apt-get update \
@@ -32,10 +37,10 @@ RUN pip install ./backend
 
 COPY --from=frontend /app/frontend/dist /app/frontend/dist
 
-RUN useradd --create-home --uid 1000 dashboard \
+RUN useradd --create-home --uid 1000 garmates \
     && mkdir -p /data \
-    && chown dashboard:dashboard /data
-USER dashboard
+    && chown garmates:garmates /data
+USER garmates
 
 VOLUME ["/data"]
 EXPOSE 8000
@@ -43,4 +48,4 @@ EXPOSE 8000
 HEALTHCHECK --interval=60s --timeout=5s --start-period=20s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/auth/state', timeout=4)"
 
-CMD ["garmin-dashboard", "serve"]
+CMD ["garmates", "serve"]

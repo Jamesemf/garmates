@@ -20,7 +20,7 @@
 # Plain HTTP only serves the root certificate (so devices can trust the CA once)
 # and redirects everything else to HTTPS.
 http:// {
-	handle /household-health-ca.crt {
+	handle /garmates-ca.crt {
 		root * /data/caddy/pki/authorities/local
 		rewrite * /root.crt
 		header Content-Type application/x-x509-ca-cert

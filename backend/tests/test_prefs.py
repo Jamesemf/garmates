@@ -3,9 +3,9 @@ import datetime as dt
 import pytest
 from sqlalchemy import create_engine, inspect, text
 
-from garmin_dashboard import prefs
-from garmin_dashboard.analytics import bucket_start
-from garmin_dashboard.db import init_engine
+from garmates import prefs
+from garmates.analytics import bucket_start
+from garmates.db import init_engine
 
 
 def test_garmin_profile_maps_to_preferences():

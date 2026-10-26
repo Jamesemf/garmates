@@ -2,11 +2,11 @@ import datetime as dt
 
 import pytest
 
-from garmin_dashboard.analytics import clock_hours, load_daily
-from garmin_dashboard.db import session_scope
-from garmin_dashboard.garmin.sync import upsert_rows
-from garmin_dashboard.goals import challenge_board, evaluate_goal, period_bounds
-from garmin_dashboard.models import Challenge, DailySummary, Goal, Person, Sleep
+from garmates.analytics import clock_hours, load_daily
+from garmates.db import session_scope
+from garmates.garmin.sync import upsert_rows
+from garmates.goals import challenge_board, evaluate_goal, period_bounds
+from garmates.models import Challenge, DailySummary, Goal, Person, Sleep
 
 TODAY = dt.date(2026, 10, 22)  # a Thursday
 

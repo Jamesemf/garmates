@@ -1,4 +1,4 @@
-"""Command line: ``garmin-dashboard serve|sync|reparse|demo|reset-password``."""
+"""Command line: ``garmates serve|sync|reparse|demo|reset-password``."""
 
 from __future__ import annotations
 
@@ -25,7 +25,7 @@ def cmd_serve(args: argparse.Namespace) -> None:
 
     settings = get_settings()
     uvicorn.run(
-        "garmin_dashboard.app:create_app",
+        "garmates.app:create_app",
         factory=True,
         host=args.host or settings.host,
         port=args.port or settings.port,
@@ -107,7 +107,7 @@ def main(argv: list[str] | None = None) -> None:
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s"
     )
-    parser = argparse.ArgumentParser(prog="garmin-dashboard")
+    parser = argparse.ArgumentParser(prog="garmates")
     parser.add_argument("--data-dir", help="Use this data directory instead of ./data")
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -139,7 +139,7 @@ def main(argv: list[str] | None = None) -> None:
 
     args = parser.parse_args(argv)
     if args.data_dir:
-        os.environ["GD_DATA_DIR"] = args.data_dir
+        os.environ["GARMATES_DATA_DIR"] = args.data_dir
         get_settings.cache_clear()
     args.func(args)
 

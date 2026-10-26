@@ -5,10 +5,10 @@ import pytest
 from garmin_personal_api import HttpError
 from sqlalchemy import func, select
 
-from garmin_dashboard.db import session_scope
-from garmin_dashboard.garmin import connector as connector_module
-from garmin_dashboard.garmin.connector import BadRequestError, GarminConnector, KeyRejectedError
-from garmin_dashboard.garmin.sync import (
+from garmates.db import session_scope
+from garmates.garmin import connector as connector_module
+from garmates.garmin.connector import BadRequestError, GarminConnector, KeyRejectedError
+from garmates.garmin.sync import (
     DATASETS_BY_NAME,
     RangeDataset,
     chunks_backwards,
@@ -16,7 +16,7 @@ from garmin_dashboard.garmin.sync import (
     store_raw,
     sync_dataset,
 )
-from garmin_dashboard.models import DailySummary, Person, RawPayload, SyncState
+from garmates.models import DailySummary, Person, RawPayload, SyncState
 
 TODAY = dt.date(2026, 10, 23)
 

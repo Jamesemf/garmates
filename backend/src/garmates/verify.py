@@ -1,4 +1,4 @@
-"""Data-quality report for synced Garmin data (``garmin-dashboard verify``).
+"""Data-quality report for synced Garmin data (``garmates verify``).
 
 Checks what the parsers produced from real API responses: coverage, missing values,
 values outside plausible human ranges, and the raw formats Garmin actually sent (e.g.

@@ -1,4 +1,4 @@
-name: garmin-dashboard
+name: garmates
 channels:
   - conda-forge
 dependencies:

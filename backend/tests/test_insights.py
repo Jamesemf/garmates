@@ -3,11 +3,11 @@ import random
 
 import pytest
 
-from garmin_dashboard.db import session_scope
-from garmin_dashboard.demo import seed_demo
-from garmin_dashboard.garmin.sync import upsert_rows
-from garmin_dashboard.insights import cohens_d, find_insights, pearson, weekly_digest
-from garmin_dashboard.models import Activity, DailySummary, Goal, Person, Sleep, SyncState
+from garmates.db import session_scope
+from garmates.demo import seed_demo
+from garmates.garmin.sync import upsert_rows
+from garmates.insights import cohens_d, find_insights, pearson, weekly_digest
+from garmates.models import Activity, DailySummary, Goal, Person, Sleep, SyncState
 
 END = dt.date(2026, 10, 22)
 ALL = {"sleep", "activity", "workouts", "body"}
@@ -106,7 +106,7 @@ def test_digest_and_insights_endpoints(client, admin):
 
 
 def test_verify_report_on_demo_data(settings):
-    from garmin_dashboard.verify import report
+    from garmates.verify import report
 
     ids = seed_demo()
     with session_scope() as db:

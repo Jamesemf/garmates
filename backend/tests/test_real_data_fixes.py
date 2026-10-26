@@ -6,10 +6,10 @@ import json
 import pytest
 from sqlalchemy import func, select
 
-from garmin_dashboard.analytics import summarise
-from garmin_dashboard.db import session_scope
-from garmin_dashboard.garmin import parsers
-from garmin_dashboard.garmin.sync import (
+from garmates.analytics import summarise
+from garmates.db import session_scope
+from garmates.garmin import parsers
+from garmates.garmin.sync import (
     DATASETS_BY_NAME,
     RangeDataset,
     reparse_all,
@@ -17,7 +17,7 @@ from garmin_dashboard.garmin.sync import (
     sync_dataset,
     upsert_rows,
 )
-from garmin_dashboard.models import DailySummary, Person, Sleep, SyncState
+from garmates.models import DailySummary, Person, Sleep, SyncState
 
 TODAY = dt.date(2026, 10, 23)
 
@@ -133,7 +133,7 @@ def test_totals_ignore_unfinished_days_and_bedtime_moves_in_minutes(person_id):
 
 
 def test_digest_reports_bedtime_change_in_minutes(person_id):
-    from garmin_dashboard.insights import weekly_digest
+    from garmates.insights import weekly_digest
 
     week = dt.date(2026, 10, 12)
     sleeps = []
@@ -153,8 +153,8 @@ def test_digest_reports_bedtime_change_in_minutes(person_id):
 
 
 def test_accidental_short_recordings_are_not_workouts(person_id):
-    from garmin_dashboard.analytics import load_daily, workout_stats
-    from garmin_dashboard.models import Activity
+    from garmates.analytics import load_daily, workout_stats
+    from garmates.models import Activity
 
     day = TODAY - dt.timedelta(days=1)
     with session_scope() as db:

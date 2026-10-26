@@ -13,20 +13,20 @@ from ..db import get_db
 from ..models import CATEGORIES, AuthSession, Person, utcnow
 from ..security import hash_token
 
-SESSION_COOKIE = "gd_session"
+SESSION_COOKIE = "garmates_session"
 # Every state-changing request must carry this header. Browsers won't add custom headers
 # to cross-site form posts, so this blocks CSRF without a token dance.
-CSRF_HEADER = "X-GD-Request"
+CSRF_HEADER = "X-Garmates-Request"
 
 DB = Annotated[Session, Depends(get_db)]
 
 
 def current_person(
-    db: DB, gd_session: Annotated[str | None, Cookie()] = None
+    db: DB, garmates_session: Annotated[str | None, Cookie()] = None
 ) -> Person:
-    if not gd_session:
+    if not garmates_session:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Not signed in")
-    session = db.get(AuthSession, hash_token(gd_session))
+    session = db.get(AuthSession, hash_token(garmates_session))
     if session is None or session.expires_at < utcnow():
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Session expired")
     person = db.get(Person, session.person_id)

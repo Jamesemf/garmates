@@ -103,7 +103,7 @@ export function Layout({ me }: { me: Person }) {
     <div className="min-h-screen lg:grid lg:grid-cols-[220px_1fr]">
       <aside className="hidden border-r border-line lg:flex lg:flex-col lg:gap-6 lg:px-3 lg:py-5">
         <Link to="/" className="px-3 text-base font-semibold tracking-tight text-ink">
-          Household Health
+          Garmates
         </Link>
         <nav aria-label="Main" className="flex flex-col gap-0.5">
           {NAV.map((item) => navLink(item))}
@@ -123,7 +123,7 @@ export function Layout({ me }: { me: Person }) {
         <header className="sticky top-0 z-[1000] border-b border-line bg-page/95 backdrop-blur lg:hidden">
           <div className="flex items-center justify-between px-4 pt-3">
             <Link to="/" className="text-base font-semibold tracking-tight text-ink">
-              Household Health
+              Garmates
             </Link>
             <div className="flex items-center gap-3">
               <ThemePicker />

@@ -25,7 +25,7 @@ async function request<T>(method: string, path: string, body?: unknown, params?:
     headers: {
       Accept: 'application/json',
       // Required by the server on every state-changing call (CSRF guard).
-      'X-GD-Request': '1',
+      'X-Garmates-Request': '1',
       ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
     },
     body: body !== undefined ? JSON.stringify(body) : undefined,

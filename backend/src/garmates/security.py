@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import contextlib
 import hashlib
-import os
 import secrets
 from functools import lru_cache
 
@@ -44,11 +43,10 @@ def hash_token(token: str) -> str:
 
 @lru_cache
 def _fernet() -> Fernet:
-    """Fernet key from GD_SECRET_KEY, else a key file generated on first run."""
+    """Fernet key from GARMATES_SECRET_KEY, else a key file generated on first run."""
     settings = get_settings()
-    env_key = os.environ.get("GD_SECRET_KEY")
-    if env_key:
-        return Fernet(env_key.encode())
+    if settings.secret_key:
+        return Fernet(settings.secret_key.encode())
     settings.ensure_dirs()
     key_file = settings.secrets_dir / "master.key"
     if not key_file.exists():

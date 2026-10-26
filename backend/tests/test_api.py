@@ -2,8 +2,8 @@ import datetime as dt
 
 import pytest
 
-from garmin_dashboard.api import people as people_api
-from garmin_dashboard.demo import seed_demo
+from garmates.api import people as people_api
+from garmates.demo import seed_demo
 
 
 def test_setup_once_then_login(client, admin):
@@ -22,7 +22,9 @@ def test_setup_once_then_login(client, admin):
 
 
 def test_state_changing_requests_need_csrf_header(client, admin):
-    response = client.post("/api/people", json={"name": "Partner"}, headers={"X-GD-Request": ""})
+    response = client.post(
+        "/api/people", json={"name": "Partner"}, headers={"X-Garmates-Request": ""}
+    )
     assert response.status_code == 403
 
 

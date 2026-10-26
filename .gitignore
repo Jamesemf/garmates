@@ -26,3 +26,8 @@ Thumbs.db
 
 # Local Claude/desktop preview config (machine-specific paths)
 .claude/launch.json
+.claude/settings.local.json
+
+# Docker image exports and copy-to-Pi archives
+*.tar
+*.tar.gz

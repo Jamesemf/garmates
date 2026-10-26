@@ -3,10 +3,25 @@ requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "garmin-dashboard"
+name = "garmates"
 version = "0.1.0"
-description = "Household Garmin dashboard built on the Garmin Connect Personal API"
+description = "Self-hosted dashboard that puts your household's Garmin data side by side"
 requires-python = ">=3.12"
+license = "MIT"
+authors = [{ name = "James Ford" }]
+keywords = ["garmin", "garmin-connect", "health", "fitness", "sleep", "hrv", "dashboard",
+            "self-hosted", "quantified-self"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Web Environment",
+    "Framework :: FastAPI",
+    "Intended Audience :: End Users/Desktop",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Visualization",
+]
 dependencies = [
     "garmin-connect-personal-api-python==1.0.0",
     "fastapi>=0.115,<1",
@@ -26,8 +41,14 @@ dev = [
     "ruff>=0.6,<1",
 ]
 
+[project.urls]
+Homepage = "https://github.com/Jamesemf/garmates"
+Documentation = "https://github.com/Jamesemf/garmates/tree/main/docs"
+Issues = "https://github.com/Jamesemf/garmates/issues"
+Changelog = "https://github.com/Jamesemf/garmates/blob/main/CHANGELOG.md"
+
 [project.scripts]
-garmin-dashboard = "garmin_dashboard.__main__:main"
+garmates = "garmates.__main__:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -44,4 +65,4 @@ target-version = "py312"
 select = ["E", "F", "I", "UP", "B", "SIM"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["garmin_dashboard"]
+known-first-party = ["garmates"]

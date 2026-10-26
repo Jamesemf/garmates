@@ -19,7 +19,7 @@ export function ActivityMap({ points, color }: { points: TrackPoint[]; color: st
     <MapContainer bounds={bounds} boundsOptions={{ padding: [24, 24] }} scrollWheelZoom={false} className="h-80 w-full rounded-lg">
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <Polyline positions={path} pathOptions={{ color: palette.chrome.surface, weight: 6, opacity: 0.9 }} />
       <Polyline positions={path} pathOptions={{ color, weight: 3 }} />

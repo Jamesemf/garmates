@@ -7,12 +7,12 @@ cd /d "%~dp0"
 if not exist "frontend\dist\index.html" (
     echo Building the web app first - this takes a minute the first time...
     pushd frontend
-    call conda run -n garmin-dashboard --no-capture-output npm install || goto :failed
-    call conda run -n garmin-dashboard --no-capture-output npm run build || goto :failed
+    call conda run -n garmates --no-capture-output npm install || goto :failed
+    call conda run -n garmates --no-capture-output npm run build || goto :failed
     popd
 )
 
-call conda run -n garmin-dashboard --no-capture-output garmin-dashboard serve %*
+call conda run -n garmates --no-capture-output garmates serve %*
 exit /b %errorlevel%
 
 :failed

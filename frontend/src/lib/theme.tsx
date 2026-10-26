@@ -36,7 +36,7 @@ const ThemeContext = createContext<ThemeState | null>(null)
 
 function readStoredChoice(): ThemeChoice {
   try {
-    const value = localStorage.getItem('gd-theme')
+    const value = localStorage.getItem('garmates-theme')
     if (value === 'light' || value === 'dark' || value === 'system') return value
   } catch {
     /* storage unavailable (private mode) - fall back to the OS setting */
@@ -71,7 +71,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       setChoice: (c) => {
         setChoiceState(c)
         try {
-          localStorage.setItem('gd-theme', c)
+          localStorage.setItem('garmates-theme', c)
         } catch {
           /* ignore */
         }

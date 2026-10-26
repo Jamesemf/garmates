@@ -1,6 +1,6 @@
 import datetime as dt
 
-from garmin_dashboard.garmin import parsers
+from garmates.garmin import parsers
 
 
 def test_daily_summary_maps_nested_fields_and_drops_sentinels():

@@ -21,7 +21,7 @@ MARKER = "JSON.parse('{\"openapi\""
 
 
 def fetch(url: str) -> str:
-    request = urllib.request.Request(url, headers={"User-Agent": "garmin-dashboard spec fetcher"})
+    request = urllib.request.Request(url, headers={"User-Agent": "garmates spec fetcher"})
     with urllib.request.urlopen(request, timeout=60) as response:
         return response.read().decode("utf-8")
 

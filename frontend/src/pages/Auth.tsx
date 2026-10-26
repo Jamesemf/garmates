@@ -36,7 +36,7 @@ export function AuthPage({ setup }: { setup: boolean }) {
     <div className="flex min-h-screen items-center justify-center px-4 py-10">
       <form onSubmit={submit} className="w-full max-w-sm space-y-4 rounded-xl border border-line bg-surface p-6">
         <div>
-          <h1 className="text-lg font-semibold text-ink">Household Health</h1>
+          <h1 className="text-lg font-semibold text-ink">Garmates</h1>
           <p className="mt-1 text-sm text-ink-2">
             {setup
               ? 'Create the first account. You become the admin and can add other people afterwards.'

@@ -2,7 +2,7 @@
 
 Garmin responses are kept verbatim in ``raw_payloads`` and parsed into the normalised
 per-day / per-activity tables below. If a parser turns out to be wrong it can be fixed and
-re-run over the stored payloads without hitting the API again (``garmin-dashboard reparse``).
+re-run over the stored payloads without hitting the API again (``garmates reparse``).
 """
 
 from __future__ import annotations
