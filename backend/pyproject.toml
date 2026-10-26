@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "garmates"
-version = "0.1.0"
+version = "0.2.0"
 description = "Self-hosted dashboard that puts your household's Garmin data side by side"
 requires-python = ">=3.12"
 license = "MIT"
