@@ -21,10 +21,7 @@ Personal API, runs on your own PC or Raspberry Pi, and keeps everyone's data at 
 
 </div>
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/images/overview-dark.png">
-  <img src="docs/images/overview-light.png" alt="Garmates overview: two people's last 7 days of sleep score, HRV, resting heart rate, steps and training load, each compared with their own usual">
-</picture>
+<p align="center"><img src="docs/images/tour.gif" alt="A short tour of Garmates: the overview, comparing HRV and sleep score indexed to each person's usual, the weekly digest, a run on a map, goals, and dark mode"></p>
 
 ## Why Garmates
 
@@ -63,6 +60,12 @@ nights the way yours does?
 | **People & keys** | Garmin keys and expiry warnings, sync status, sharing, logins, and units (km/mi, kg/lb/st, 12/24 h) |
 
 ## Screenshots
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/overview-dark.png">
+  <img src="docs/images/overview-light.png" alt="Garmates overview: two people's last 7 days of sleep score, HRV, resting heart rate, steps and training load, each compared with their own usual">
+</picture>
+<p align="center"><sub><b>Overview:</b> everyone's week against their own usual (follows your light or dark theme)</sub></p>
 
 <table>
   <tr>

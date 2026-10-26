@@ -1,7 +1,7 @@
 {
   "name": "garmates-frontend",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "license": "MIT",
   "type": "module",
   "scripts": {
@@ -27,8 +27,10 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
+    "gifenc": "^1.0.3",
     "oxlint": "^1.88.0",
     "playwright": "^1.64.1",
+    "pngjs": "^7.0.0",
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.3",
     "vite": "^8.3.4"
