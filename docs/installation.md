@@ -263,6 +263,26 @@ docker compose restart
 the `chown` step is needed. A database from a version before the rename
 (`garmin-dashboard.sqlite3`) is picked up automatically.
 
+## Hosting a public demo
+
+Demo mode turns Garmates into a read-only showcase that's safe to put on the internet, for
+example to link from a blog post. It holds only the two synthetic demo profiles:
+
+- Visitors see the dashboard straight away, without signing in.
+- Every change is refused, including setup, logins, Garmin keys, goals and settings.
+- The demo data is regenerated each day, so it always runs up to today.
+- It refuses to start if the data directory contains any real person. Never point it at your
+  household's data.
+
+Run it on any Docker host or container platform:
+
+```bash
+docker run -d -p 8000:8000 -e GARMATES_DEMO_MODE=true --name garmates-demo ghcr.io/jamesemf/garmates
+```
+
+Don't mount a volume, or use a fresh one: a new container generates its own data. Put it
+behind your platform's HTTPS. No other settings are needed.
+
 ## Troubleshooting
 
 | Problem | Fix |

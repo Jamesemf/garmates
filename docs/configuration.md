@@ -23,6 +23,7 @@ All of these use the `GARMATES_` prefix and are defined in
 | `GARMATES_SECURE_COOKIES` | `false` | Mark session cookies HTTPS-only. Set it only when serving over HTTPS. The Caddy overlay sets it for you. |
 | `GARMATES_TRUST_PROXY` | `false` | Trust `X-Forwarded-For`/`-Proto` from a reverse proxy, so login rate limiting sees each device's address. Enable it only when the app isn't reachable directly. The Caddy overlay sets it. |
 | `GARMATES_FRONTEND_DIST` | `./frontend/dist` | The built web app that FastAPI serves. |
+| `GARMATES_DEMO_MODE` | `false` | Run a public, read-only demo: synthetic profiles regenerated daily, no sign-in, every change refused. It won't start on a data directory with real people in it. See [Hosting a public demo](installation.md#hosting-a-public-demo). |
 
 To generate your own `GARMATES_SECRET_KEY`:
 

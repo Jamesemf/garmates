@@ -360,6 +360,18 @@ def seed_demo(today: dt.date | None = None) -> list[int]:
     return ids
 
 
+def prepare_demo_mode(today: dt.date | None = None) -> list[int]:
+    """Start a public demo: refuse a data directory with real people in it, then reseed."""
+    with session_scope() as db:
+        real = db.scalar(select(Person.id).where(Person.is_demo.is_(False)).limit(1))
+    if real is not None:
+        raise RuntimeError(
+            "Demo mode only runs on a data directory without real people in it, because "
+            "every visitor can see everything. Point GARMATES_DATA_DIR at an empty directory."
+        )
+    return seed_demo(today)
+
+
 def remove_demo() -> int:
     with session_scope() as db:
         demo_people = db.scalars(select(Person).where(Person.is_demo.is_(True))).all()

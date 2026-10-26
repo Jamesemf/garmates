@@ -45,6 +45,9 @@ class Settings(BaseSettings):
     # Behind a reverse proxy (Caddy): honour X-Forwarded-For/-Proto so login rate limiting
     # sees each device's address. Only enable when the app isn't reachable directly.
     trust_proxy: bool = False
+    # Public read-only demo: synthetic profiles regenerated daily, every visitor sees them
+    # without signing in, and all writes are refused. Won't start if real people exist.
+    demo_mode: bool = False
 
     @property
     def database_url(self) -> str:
