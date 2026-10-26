@@ -6,6 +6,8 @@ All notable changes to Garmates are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-26
+
 ### Added
 
 - **Demo mode** (`GARMATES_DEMO_MODE=true`) for hosting a public, read-only showcase:
@@ -56,5 +58,6 @@ First public release.
 - **CLI:** `serve`, `sync`, `reparse`, `verify` (a data-quality report), `demo` (synthetic
   profiles) and `reset-password`.
 
-[Unreleased]: https://github.com/Jamesemf/garmates/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/Jamesemf/garmates/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/Jamesemf/garmates/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Jamesemf/garmates/releases/tag/v0.1.0
