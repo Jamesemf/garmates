@@ -9,7 +9,7 @@ COPY frontend/ ./
 RUN npm run build
 
 # --- Runtime: small Python image for the target architecture (amd64 PC/NAS, arm64 Pi) ---
-FROM python:3.12-slim AS runtime
+FROM python:3.15-slim AS runtime
 
 LABEL org.opencontainers.image.title="Garmates" \
       org.opencontainers.image.description="Self-hosted dashboard that puts your household's Garmin data side by side" \
