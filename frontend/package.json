@@ -12,12 +12,12 @@
     "screenshots": "npm run build && node scripts/screenshots.mjs"
   },
   "dependencies": {
-    "@tanstack/react-query": "^5.104.5",
+    "@tanstack/react-query": "^5.105.0",
     "leaflet": "^1.9.4",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-leaflet": "^5.0.0",
-    "react-router": "^8.5.0",
+    "react-router": "^8.5.1",
     "recharts": "^3.10.1"
   },
   "devDependencies": {
@@ -28,7 +28,7 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
     "gifenc": "^1.0.3",
-    "oxlint": "^1.88.0",
+    "oxlint": "^1.90.0",
     "playwright": "^1.64.1",
     "pngjs": "^7.0.0",
     "tailwindcss": "^4.3.3",
