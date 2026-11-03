@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # --- Frontend build: runs on the build machine's own architecture, output is plain files ---
-FROM --platform=$BUILDPLATFORM node:22-slim AS frontend
+FROM --platform=$BUILDPLATFORM node:26-slim AS frontend
 WORKDIR /app/frontend
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci --no-audit --no-fund
